@@ -1,0 +1,12 @@
+## Title: Fux
+## Interface: 20300
+## Version: 1
+## Author: Zariel
+## OptionalDeps: Ace3, LibQuixote-2.0
+## SavedVariables: Fuxdb
+
+embeds.xml
+
+FuxCore.lua
+FuxFrame.lua
+FuxStats.lua

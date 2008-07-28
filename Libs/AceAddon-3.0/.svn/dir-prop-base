@@ -1,0 +1,10 @@
+K 10
+svn:ignore
+V 6
+*.toc
+
+K 16
+tsvn:logtemplate
+V 7
+Ace3 - 
+END
