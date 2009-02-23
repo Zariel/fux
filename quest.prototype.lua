@@ -35,7 +35,7 @@ end
 
 function fux:NewZone(name)
 	if self.ZonesByName[name] then
-		return
+		return self.ZonesByName[name]
 	end
 
 	fux.zoneCount = fux.zoneCount + 1
@@ -78,7 +78,7 @@ end
 
 function zone_proto:AddQuest(name, level, status)
 	if self.questsByName[name]then
-		return
+		return self.questsByName[name]
 	end
 
 	self.questCount = self.questCount + 1
@@ -120,7 +120,7 @@ end
 
 function quest_proto:AddObjective(name, status)
 	if self.objectivesByName[name] then
-		return
+		return self.objectivesByName[name]
 	end
 
 	self.objectivesCount = self.objectivesCount + 1
