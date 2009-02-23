@@ -1,5 +1,5 @@
 ## Title: Fux
-## Interface: 20300
+## Interface: 30000
 ## Version: 1
 ## Author: Zariel
 ## OptionalDeps: Ace3, LibQuixote-2.0
@@ -7,6 +7,6 @@
 
 embeds.xml
 
-FuxCore.lua
-FuxFrame.lua
-FuxStats.lua
+core.lua
+quest.prototype.lua
+frame.lua
