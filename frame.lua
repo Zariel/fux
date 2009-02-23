@@ -1,8 +1,9 @@
 local fux = LibStub("AceAddon-3.0"):GetAddon("Fux")
 local frame = fux:NewModule("Frame")
+local Q = LibStub("LibQuixote-2.0")
 
 function frame:OnInitialize()
-	local f = CreateFrame("Frame")
+	local f = CreateFrame("Frame", nil, UIParent)
 	f:SetHeight(175)
 	f:SetWidth(75)
 	f:SetBackdrop({
@@ -18,7 +19,7 @@ function frame:OnInitialize()
 	t:SetPoint("TOP", f, "TOP", 0, -3)
 	t:SetPoint("LEFT")
 	t:SetPoint("RIGHT")
-	t:SetFont(STANDARD_FONT_TEXT)
+	t:SetFont(STANDARD_FONT_TEXT, 16)
 	t:SetText("Fux Title")
 
 	f.title = t
@@ -26,5 +27,7 @@ function frame:OnInitialize()
 	self.frame = f
 end
 
-function frame:OnEnable()
+function frame:Update()
+	for zone in Q:IterateZones() do
+	end
 end
