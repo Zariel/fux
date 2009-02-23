@@ -1,7 +1,7 @@
 local fux = LibStub("AceAddon-3.0"):GetAddon("Fux")
 
 local zone_proto = {}
-zone_proto = {}
+local quests_proto = {}
 
 local newRow, delRow
 do
@@ -47,18 +47,28 @@ function fux:NewZone(name)
 	row.text:SetText(name)
 
 	row.name = name
-	row.uid = GetTime()
-	row.id = fux.zonesCount + 1
+	row.id = fux.zonesCount
+	row.visible = false
+
 	row.quests = {}
+	row.questsByName = {}
+	row.questCount = 0
 
 	if fux.zoneCount > 1 then
 		local prev = fux.Zones[fux.zoneCount - 1]
-		row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+		if prev.visible then
+			-- Has quests showing, TODO later check if we have
+			-- objectives in the quests
+			local q = prev.quests[prev.questCount]
+			row:SetPoint("TOP", q, "BOTTOM", 0, - 3)
+		else
+			row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+		end
 	else
 		row:SetPoint("TOP", fux.frame, "TOP", 0, - 20)
 	end
 
-	row:SetPoint("LEFT", fux.frame, "LEFT", 0, 5)
+	row:SetPoint("LEFT", fux.frame, "LEFT", 5, 0)
 
 	table.insert(self.zones, row)
 	self.ZonesByName[name] = row
@@ -67,3 +77,43 @@ function fux:NewZone(name)
 end
 
 function zone_proto:AddQuest(name, level, status)
+	if row.questsByName then
+		return
+	end
+
+	self.questCount = self.questCount + 1
+
+	local row = newRow()
+
+	row.text:SetText(name)
+
+	row.name = name
+	row.level = level
+	row.status = status
+	row.id = self.questCount
+
+	row.objectives = {}
+	row.objectivesByName = {}
+	row.objectivesCount = 0
+
+	if self.questCount > 1 then
+		local prev = self.quests[self.questCount - 1]
+		if prev then
+			if prev.objectivesCount > 1 then
+				local o = prev.objectives[prev.objectivesCount]
+				row:SetPoint("TOP", o, "BOTTOM", 0, - 3)
+			else
+				row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+			end
+		end
+	else
+		row:SetPoint("TOP", self, "BOTTOM", 0, - 3)
+	end
+
+	row:SetPoint("LEFT", fux.frame, "LEFT", 5, 0)
+
+	table.insert(self.quests, row)
+	self.questsByName[name] = row
+
+	return row
+end
