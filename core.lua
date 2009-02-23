@@ -6,3 +6,8 @@ function fux:OnEnable()
 	self.ZonesByName = {}
 	self.zoneCount = 0
 end
+
+function fux:Bind(class, proto)
+	local meta = getmetatable(class)
+	setmetatable(meta, proto)
+end

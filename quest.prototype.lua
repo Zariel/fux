@@ -2,6 +2,7 @@ local fux = LibStub("AceAddon-3.0"):GetAddon("Fux")
 
 local zone_proto = {}
 local quests_proto = {}
+local objective_proto = {}
 
 local newRow, delRow
 do
@@ -41,8 +42,7 @@ function fux:NewZone(name)
 
 	local row = newRow()
 
-	local meta = getmetatable(row)
-	setmetatable(meta, __index = zone_proto)
+	fux:Bind(row, zone_proto)
 
 	row.text:SetText(name)
 
@@ -77,15 +77,17 @@ function fux:NewZone(name)
 end
 
 function zone_proto:AddQuest(name, level, status)
-	if row.questsByName then
+	if self.questsByName[name]then
 		return
 	end
 
 	self.questCount = self.questCount + 1
 
 	local row = newRow()
+	fux:Bind(row, quest_proto)
 
 	row.text:SetText(name)
+	row.right:SetText(status)
 
 	row.name = name
 	row.level = level
@@ -98,22 +100,53 @@ function zone_proto:AddQuest(name, level, status)
 
 	if self.questCount > 1 then
 		local prev = self.quests[self.questCount - 1]
-		if prev then
-			if prev.objectivesCount > 1 then
-				local o = prev.objectives[prev.objectivesCount]
-				row:SetPoint("TOP", o, "BOTTOM", 0, - 3)
-			else
-				row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
-			end
+		if prev.objectivesCount > 1 then
+			local o = prev.objectives[prev.objectivesCount]
+			row:SetPoint("TOP", o, "BOTTOM", 0, - 3)
+		else
+			row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
 		end
 	else
 		row:SetPoint("TOP", self, "BOTTOM", 0, - 3)
 	end
 
-	row:SetPoint("LEFT", fux.frame, "LEFT", 5, 0)
+	row:SetPoint("LEFT", self, "LEFT", 5, 0)
 
 	table.insert(self.quests, row)
 	self.questsByName[name] = row
 
 	return row
 end
+
+function quest_proto:AddObjective(name, status)
+	if self.objectivesByName[name] then
+		return
+	end
+
+	self.objectivesCount = self.objectivesCount + 1
+
+	local row = newRow()
+	fux:Bind(row, objective_proto)
+
+	row.text:SetText(name)
+	row.right:SetText(status)
+
+	row.name = name
+	row.status = status
+	row.id = self.objectivesCount
+
+	if self.objectivesCount > 1 then
+		local prev = self.objectives[self.objectivesCount]
+		row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+	else
+		row:SetPoint("TOP", self, "BOTTOM", 0, - 3)
+	end
+
+	row:SetPoint("LEFT", self, "LEFT", 5, 0)
+
+	table.insert(self.objectives, row)
+	self.objectivesByName[name] = row
+
+	return row
+end
+
