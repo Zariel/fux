@@ -150,3 +150,39 @@ function quest_proto:AddObjective(name, status)
 	return row
 end
 
+-- MADNESS ENSUES
+function fux:Reposition()
+	for id, zone in ipairs(self.zones) do
+		-- are we shown?
+		local last
+		if zone.visible then
+			-- We should have a quest
+			for qid, quest in ipairs(zone.quests) do
+				if qid == 1 then
+					-- Attach to the zone
+					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 5, - 3)
+				else
+					local prev = zone.quests[qid - 1]
+					-- Does prev have objs?
+					if prev.objectivesCount > 1 then
+						-- It does attach it to the
+						-- obj
+						local obj = prev.objectives[prev.objectivesCount]
+						quest:SetPoint("TOPLEFT", obj, "BOTTOMLEFT", 5, - 3)
+						last = obj
+					else
+						quest:SetPoint("TOPLEFT", zone.quests[qid - 1], "BOTTOMLEFT", 5, - 3)
+						last = quest
+					end
+				end
+			end
+		end
+		if id > 1 then
+			if last then
+				self.zones[id - 1]:SetPoint("TOP", last, "BOTTOM", 0, - 3)
+			end
+		else
+			zone:SetPoint("TOP", self.frame, "TOP", 0, - 20)
+		end
+	end
+end
