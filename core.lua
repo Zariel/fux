@@ -1,12 +1,13 @@
 local fux = LibStub("AceAddon-3.0"):NewAddon("Fux")
-local quixote = LibStub("LibQuixote-2.0")
+local Q = LibStub("LibQuixote-2.0")
 
 function fux:OnEnable()
-	self.Zones = {}
+	self.zones = {}
 	self.ZonesByName = {}
 	self.zoneCount = 0
 
-	quixote.RegisterCallback(self, "Quixote_Update", "QuestUpdate")
+	Q.RegisterCallback(self, "Quixote_Update", "QuestUpdate")
+	self:QuestUpdate()
 end
 
 function fux:Bind(class, proto)
@@ -45,15 +46,15 @@ end
 
 function fux:QuestUpdate()
 	local id = GetTime()
-	for _, z, n in quixote:IterateZones() do
+	for _, z, n in Q:IterateZones() do
 		local zone = self:NewZone(z)
 		zone.uid = zone
 
-		for _, uid, qid, title, level, objectives, complete in quixote:IterateQuestsInZone(z) do
+		for _, uid, qid, title, level, objectives, complete in Q:IterateQuestsInZone(z) do
 			local quest = zone:AddQuest(title, level, "stuff")
 			quest.uid = id
 			if objectives > 0 then
-				for _, objective, got, need, t in quixote:IterateObjectivesForQuest(uid) do
+				for _, objective, got, need, t in Q:IterateObjectivesForQuest(uid) do
 					local status = got .. "/" .. need
 					local obj = quest:AddObjective(name, status)
 					obj.uid = id

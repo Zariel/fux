@@ -1,7 +1,7 @@
 local fux = LibStub("AceAddon-3.0"):GetAddon("Fux")
 
 local zone_proto = {}
-local quests_proto = {}
+local quest_proto = {}
 local objective_proto = {}
 
 local newRow, delRow
@@ -11,7 +11,7 @@ do
 		height = height or 12
 		local row = next(row_cache)
 		if row then
-			row_cache(row) = nil
+			row_cache[row] = nil
 			row:Show()
 		else
 			row = CreateFrame("Frame", nil, fux.frame)
