@@ -33,6 +33,29 @@ do
 	end
 end
 
+local zoneOnClick = function(self, button)
+	if button == "LeftButton" then
+		if self.visible then
+			self.text:SetText("-" .. self.name)
+			for qid, q in ipairs(self.quests) do
+				q:Hide()
+				for oid, o in ipairs(q.objectives) do
+					o:Hide()
+				end
+			end
+		else
+			self.text:SetText("+" .. self.name)
+			for qid, q in ipairs(self.quests) do
+				q:Show()
+				for oid, o in ipairs(q.objectives) do
+					o:Show()
+				end
+			end
+		end
+		fux:Reposition()
+	end
+end
+
 function fux:NewZone(name)
 	if self.zonesByName[name] then
 		return self.zonesByName[name]
@@ -40,7 +63,9 @@ function fux:NewZone(name)
 
 	fux.zoneCount = fux.zoneCount + 1
 
-	local row = newRow()
+	local row = newRow(14)
+
+	row:SetScript("OnMouseUp", zoneOnClick)
 
 	setmetatable(row, {__index = zone_proto})
 
@@ -53,8 +78,6 @@ function fux:NewZone(name)
 	row.quests = {}
 	row.questsByName = {}
 	row.questCount = 0
-
-	row:SetPoint("LEFT", fux.frame, "LEFT", self.zoneIndent, 0)
 
 	table.insert(self.zones, row)
 	self.zonesByName[name] = row
@@ -72,19 +95,22 @@ function zone_proto:AddQuest(name, level, status)
 	local row = newRow()
 	setmetatable(row, {__index = quest_proto})
 
-	row.text:SetText(name)
-	row.right:SetText(status)
+	row:EnableMouse()
+	row.text:SetText(string.format("[%d] %s", level, name))
 
 	row.name = name
 	row.level = level
-	row.status = status
+
+	if status then
+		row.status = status
+		row.right:SetText(status)
+	end
+
 	row.id = self.questCount
 
 	row.objectives = {}
 	row.objectivesByName = {}
 	row.objectivesCount = 0
-
-	row:SetPoint("LEFT", self, "LEFT", self.questIndent, 0)
 
 	table.insert(self.quests, row)
 	self.questsByName[name] = row
@@ -109,12 +135,8 @@ function quest_proto:AddObjective(name, status)
 	row.status = status
 	row.id = self.objectivesCount
 
-	row:SetPoint("LEFT", self, "LEFT", self.objIndent, 0)
-
 	table.insert(self.objectives, row)
 	self.objectivesByName[name] = row
 
 	return row
 end
-
-

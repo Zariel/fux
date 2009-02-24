@@ -95,44 +95,61 @@ end
 
 -- MADNESS ENSUES
 function fux:Reposition()
+	local height = 50
+	local width = 250
+
 	for id, zone in ipairs(self.zones) do
-		-- are we shown?
+		height = height + 16
+
 		if id == 1 then
 			zone:ClearAllPoints()
-			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", self.zoneIndent, - 20)
+			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 5, - 30)
 		end
 
 		local last
 		if zone.visible then
-			-- We should have a quest
+			table.sort(zone.quests, function(a, b)
+				return a.level < b.level
+			end)
+
 			for qid, quest in ipairs(zone.quests) do
+				height = height + 14
+
+				local ll, lr = quest.text:GetStringWidth(), quest.right:GetStringWidth()
+				ll = math.max(250, ll)
+				width = math.max(width, ll + lr)
+
 				quest:ClearAllPoints()
+
 				if qid == 1 then
-					-- Attach to the zone
-					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", self.questIndent, - 3)
+					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 10, - 3)
 				else
 					local prev = zone.quests[qid - 1]
-					-- Does prev have objs?
+
 					if prev.objectivesCount > 1 then
-						-- It does attach it to the
-						-- obj
 						local obj = prev.objectives[prev.objectivesCount]
 						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 3)
 					else
 						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
 					end
-					quest:SetPoint("LEFT", zone, "LEFT", self.questIndent, 0)
+
+					quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
 				end
+
 				last = quest
+
 				for oid, obj in ipairs(quest.objectives) do
+					height = height + 12
 					obj:ClearAllPoints()
+
 					if oid == 1 then
-						obj:SetPoint("TOPLEFT", quest, "BOTTOMLEFT", self.objIndent, - 3)
+						obj:SetPoint("TOPLEFT", quest, "BOTTOMLEFT", 5, - 3)
 					else
 						local prev = quest.objectives[oid - 1]
 						obj:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
-						obj:SetPoint("LEFT", prev, "LEFT", self.objIndent, - 3)
+						obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
 					end
+
 					last = obj
 				end
 			end
@@ -143,8 +160,11 @@ function fux:Reposition()
 			if next then
 				next:ClearAllPoints()
 				next:SetPoint("TOP", last, "BOTTOM", 0, - 3)
-				next:SetPoint("LEFT", self.frame, "LEFT", self.zoneIndent, 0)
+				next:SetPoint("LEFT", self.frame, "LEFT", 5, 0)
 			end
 		end
 	end
+
+	self.frame:SetHeight(height)
+	self.frame:SetWidth(width)
 end
