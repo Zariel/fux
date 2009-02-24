@@ -1,8 +1,8 @@
 local fux = LibStub("AceAddon-3.0"):GetAddon("Fux")
 
-local zone_proto = {}
-local quest_proto = {}
-local objective_proto = {}
+local zone_proto = CreateFrame("Frame")
+local quest_proto = CreateFrame("Frame")
+local objective_proto = CreateFrame("Frame")
 
 local newRow, delRow
 do
@@ -21,7 +21,7 @@ do
 			local text = row:CreateFontString(nil, "OVERLAY")
 			text:SetFont(STANDARD_TEXT_FONT, height)
 			text:SetPoint("TOPLEFT", row, "TOPLEFT")
-			row.title = text
+			row.text = text
 
 			local level = row:CreateFontString(nil, "OVERLAY")
 			level:SetPoint("TOPRIGHT", row, "TOPRIGHT")
@@ -42,7 +42,7 @@ function fux:NewZone(name)
 
 	local row = newRow()
 
-	fux:Bind(row, zone_proto)
+	setmetatable(row, zone_proto)
 
 	row.text:SetText(name)
 
@@ -84,7 +84,7 @@ function zone_proto:AddQuest(name, level, status)
 	self.questCount = self.questCount + 1
 
 	local row = newRow()
-	fux:Bind(row, quest_proto)
+	setmetatable(row, quest_proto)
 
 	row.text:SetText(name)
 	row.right:SetText(status)
@@ -126,7 +126,7 @@ function quest_proto:AddObjective(name, status)
 	self.objectivesCount = self.objectivesCount + 1
 
 	local row = newRow()
-	fux:Bind(row, objective_proto)
+	setmetatable(row, objective_proto)
 
 	row.text:SetText(name)
 	row.right:SetText(status)

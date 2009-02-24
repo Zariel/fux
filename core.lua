@@ -36,11 +36,6 @@ function fux:OnEnable()
 	self:QuestUpdate()
 end
 
-function fux:Bind(class, proto)
-	local meta = getmetatable(class)
-	setmetatable(meta, proto)
-end
-
 function fux:Purge(uid)
 	for id, zone in ipairs(self.zones) do
 		for qid, quest in ipairs(zone.quests) do
