@@ -42,7 +42,7 @@ function fux:NewZone(name)
 
 	local row = newRow()
 
-	setmetatable(row, zone_proto)
+	setmetatable(row, {__index = zone_proto})
 
 	row.text:SetText(name)
 
@@ -84,7 +84,7 @@ function zone_proto:AddQuest(name, level, status)
 	self.questCount = self.questCount + 1
 
 	local row = newRow()
-	setmetatable(row, quest_proto)
+	setmetatable(row, {__index = quest_proto})
 
 	row.text:SetText(name)
 	row.right:SetText(status)
@@ -126,7 +126,7 @@ function quest_proto:AddObjective(name, status)
 	self.objectivesCount = self.objectivesCount + 1
 
 	local row = newRow()
-	setmetatable(row, objective_proto)
+	setmetatable(row, {__index = objective_proto})
 
 	row.text:SetText(name)
 	row.right:SetText(status)
