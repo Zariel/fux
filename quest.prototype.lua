@@ -48,27 +48,13 @@ function fux:NewZone(name)
 
 	row.name = name
 	row.id = fux.zonesCount
-	row.visible = false
+	row.visible = true
 
 	row.quests = {}
 	row.questsByName = {}
 	row.questCount = 0
 
-	if fux.zoneCount > 1 then
-		local prev = fux.zones[fux.zoneCount - 1]
-		if prev.visible then
-			-- Has quests showing, TODO later check if we have
-			-- objectives in the quests
-			local q = prev.quests[prev.questCount]
-			row:SetPoint("TOP", q, "BOTTOM", 0, - 3)
-		else
-			row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
-		end
-	else
-		row:SetPoint("TOP", fux.frame, "TOP", 0, - 20)
-	end
-
-	row:SetPoint("LEFT", fux.frame, "LEFT", 5, 0)
+	row:SetPoint("LEFT", fux.frame, "LEFT", self.zoneIndent, 0)
 
 	table.insert(self.zones, row)
 	self.zonesByName[name] = row
@@ -98,19 +84,7 @@ function zone_proto:AddQuest(name, level, status)
 	row.objectivesByName = {}
 	row.objectivesCount = 0
 
-	if self.questCount > 1 then
-		local prev = self.quests[self.questCount - 1]
-		if prev.objectivesCount > 1 then
-			local o = prev.objectives[prev.objectivesCount]
-			row:SetPoint("TOP", o, "BOTTOM", 0, - 3)
-		else
-			row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
-		end
-	else
-		row:SetPoint("TOP", self, "BOTTOM", 0, - 3)
-	end
-
-	row:SetPoint("LEFT", self, "LEFT", 5, 0)
+	row:SetPoint("LEFT", self, "LEFT", self.questIndent, 0)
 
 	table.insert(self.quests, row)
 	self.questsByName[name] = row
@@ -135,12 +109,7 @@ function quest_proto:AddObjective(name, status)
 	row.status = status
 	row.id = self.objectivesCount
 
-	if self.objectivesCount > 1 then
-		local prev = self.objectives[self.objectivesCount]
-		row:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 5, - 3)
-	else
-		row:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 5, - 3)
-	end
+	row:SetPoint("LEFT", self, "LEFT", self.objIndent, 0)
 
 	table.insert(self.objectives, row)
 	self.objectivesByName[name] = row
@@ -148,43 +117,4 @@ function quest_proto:AddObjective(name, status)
 	return row
 end
 
--- MADNESS ENSUES
-function fux:Reposition()
-	for id, zone in ipairs(self.zones) do
-		-- are we shown?
-		local last
-		if zone.visible then
-			-- We should have a quest
-			for qid, quest in ipairs(zone.quests) do
-				quest:ClearAllPoints()
-				if qid == 1 then
-					-- Attach to the zone
-					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 5, - 3)
-				else
-					local prev = zone.quests[qid - 1]
-					-- Does prev have objs?
-					if prev.objectivesCount > 1 then
-						-- It does attach it to the
-						-- obj
-						local obj = prev.objectives[prev.objectivesCount]
-						quest:SetPoint("TOPLEFT", obj, "BOTTOMLEFT", 5, - 3)
-						last = obj
-					else
-						quest:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 5, - 3)
-						last = quest
-					end
-				end
-			end
-		end
-		if id > 1 then
-			if last then
-				local prev = self.zones[id - 1]
-				prev:ClearAllPoints()
-				prev:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, - 3)
-			end
-		else
-			zone:ClearAllPoints()
-			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 3, - 20)
-		end
-	end
-end
+
