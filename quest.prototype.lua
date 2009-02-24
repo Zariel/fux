@@ -34,8 +34,8 @@ do
 end
 
 function fux:NewZone(name)
-	if self.ZonesByName[name] then
-		return self.ZonesByName[name]
+	if self.zonesByName[name] then
+		return self.zonesByName[name]
 	end
 
 	fux.zoneCount = fux.zoneCount + 1
@@ -55,7 +55,7 @@ function fux:NewZone(name)
 	row.questCount = 0
 
 	if fux.zoneCount > 1 then
-		local prev = fux.Zones[fux.zoneCount - 1]
+		local prev = fux.zones[fux.zoneCount - 1]
 		if prev.visible then
 			-- Has quests showing, TODO later check if we have
 			-- objectives in the quests
@@ -71,7 +71,7 @@ function fux:NewZone(name)
 	row:SetPoint("LEFT", fux.frame, "LEFT", 5, 0)
 
 	table.insert(self.zones, row)
-	self.ZonesByName[name] = row
+	self.zonesByName[name] = row
 
 	return row
 end
@@ -137,12 +137,10 @@ function quest_proto:AddObjective(name, status)
 
 	if self.objectivesCount > 1 then
 		local prev = self.objectives[self.objectivesCount]
-		row:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+		row:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 5, - 3)
 	else
-		row:SetPoint("TOP", self, "BOTTOM", 0, - 3)
+		row:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 5, - 3)
 	end
-
-	row:SetPoint("LEFT", self, "LEFT", 5, 0)
 
 	table.insert(self.objectives, row)
 	self.objectivesByName[name] = row
@@ -158,6 +156,7 @@ function fux:Reposition()
 		if zone.visible then
 			-- We should have a quest
 			for qid, quest in ipairs(zone.quests) do
+				quest:ClearAllPoints()
 				if qid == 1 then
 					-- Attach to the zone
 					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 5, - 3)
@@ -171,7 +170,7 @@ function fux:Reposition()
 						quest:SetPoint("TOPLEFT", obj, "BOTTOMLEFT", 5, - 3)
 						last = obj
 					else
-						quest:SetPoint("TOPLEFT", zone.quests[qid - 1], "BOTTOMLEFT", 5, - 3)
+						quest:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 5, - 3)
 						last = quest
 					end
 				end
@@ -179,10 +178,13 @@ function fux:Reposition()
 		end
 		if id > 1 then
 			if last then
-				self.zones[id - 1]:SetPoint("TOP", last, "BOTTOM", 0, - 3)
+				local prev = self.zones[id - 1]
+				prev:ClearAllPoints()
+				prev:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, - 3)
 			end
 		else
-			zone:SetPoint("TOP", self.frame, "TOP", 0, - 20)
+			zone:ClearAllPoints()
+			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 3, - 20)
 		end
 	end
 end

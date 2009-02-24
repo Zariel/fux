@@ -29,7 +29,7 @@ end
 
 function fux:OnEnable()
 	self.zones = {}
-	self.ZonesByName = {}
+	self.zonesByName = {}
 	self.zoneCount = 0
 
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
@@ -58,7 +58,7 @@ function fux:Purge(uid)
 		if zone.uid ~= uid then
 			zone:Hide()
 			table.remove(self.zones, id)
-			self.ZonesByName[zone.name] = nil
+			self.zonesByName[zone.name] = nil
 		end
 	end
 
@@ -74,15 +74,15 @@ function fux:QuestUpdate()
 		for _, uid, qid, title, level, objectives, complete in Q:IterateQuestsInZone(z) do
 			local quest = zone:AddQuest(title, level, "stuff")
 			quest.uid = id
-			if objectives > 0 then
+			--[[if objectives and objectives > 0 then
 				for _, objective, got, need, t in Q:IterateObjectivesForQuest(uid) do
 					local status = got .. "/" .. need
 					local obj = quest:AddObjective(name, status)
 					obj.uid = id
 				end
-			end
+			end]]
 		end
 	end
-	self:Purge(id)
+	--self:Purge(id)
 end
 
