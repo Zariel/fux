@@ -160,8 +160,9 @@ function fux:Reposition()
 		local last = zone
 		if zone.visible then
 			for qid, quest in ipairs(zone.quests) do
-				height = height + 14
+				last = quest
 
+				height = height + 14
 				local l = math.max(math.floor(quest.text:GetStringWidth()), 150) + math.floor(quest.right:GetStringWidth()) + 30
 				width = math.max(width, l)
 
@@ -182,11 +183,10 @@ function fux:Reposition()
 
 					quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
 				end
-
-				last = quest
-
 				if quest.visible then
 					for oid, obj in ipairs(quest.objectives) do
+						last = obj
+
 						height = height + 13
 						local l = math.max(math.floor(obj.text:GetStringWidth()) + 40, 150) + math.floor(obj.right:GetStringWidth()) + 40
 						width = math.max(width, l)
@@ -202,8 +202,6 @@ function fux:Reposition()
 						end
 
 						obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
-
-						last = obj
 					end
 				end
 			end
