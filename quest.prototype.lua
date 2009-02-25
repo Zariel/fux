@@ -151,6 +151,9 @@ end
 
 function zone_proto:AddQuest(uid, name, level, status)
 	if self.questsByName[name]then
+		if status then
+			self.questsByName[name]:SetStatus(status)
+		end
 		return self.questsByName[name]
 	end
 
@@ -250,6 +253,9 @@ end
 
 function quest_proto:AddObjective(name, status)
 	if self.objectivesByName[name] then
+		if status then
+			self.objectivesByName:SetStatus(status)
+		end
 		return self.objectivesByName[name]
 	end
 
@@ -278,4 +284,8 @@ function quest_proto:AddObjective(name, status)
 	self.objectivesByName[name] = row
 
 	return row
+end
+
+function objective_proto:SetStatus(status)
+	self.right:SetText(status)
 end

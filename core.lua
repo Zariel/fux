@@ -98,7 +98,7 @@ function fux:QuestUpdate()
 		zone.tid = id
 
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
-			local quest = zone:AddQuest(uid, title, level)
+			local quest = zone:AddQuest(uid, title, level, complete and "(done)")
 			quest.tid = id
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
@@ -108,6 +108,12 @@ function fux:QuestUpdate()
 				end
 			end
 		end
+	end
+
+	for id, zone in pairs(self.zones) do
+		table.sort(zone.quests, function(a, b)
+			return a.level < b.level
+		end)
 	end
 
 	if not self.init then
@@ -131,9 +137,6 @@ function fux:Reposition()
 
 		local last = zone
 		if zone.visible then
-			table.sort(zone.quests, function(a, b)
-				return a.level < b.level
-			end)
 
 			for qid, quest in ipairs(zone.quests) do
 				height = height + 14
@@ -164,7 +167,7 @@ function fux:Reposition()
 				if quest.visible then
 					for oid, obj in ipairs(quest.objectives) do
 						height = height + 13
-						local l = math.max(math.floor(obj.text:GetStringWidth()), 150) + math.floor(obj.right:GetStringWidth()) + 40
+						local l = math.max(math.floor(obj.text:GetStringWidth()) + 40, 150) + math.floor(obj.right:GetStringWidth()) + 40
 						width = math.max(width, l)
 
 						obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
