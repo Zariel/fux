@@ -18,6 +18,7 @@ do
 			row:Show()
 		else
 			row = CreateFrame("Frame", nil, fux.frame)
+			row.tid = 0
 			row:SetHeight(height)
 			row:SetWidth(fux.frame:GetWidth())
 
@@ -149,6 +150,21 @@ local questOnLeave = function(self)
 	self.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
 end
 
+function zone_proto:Remove(qid, quest)
+	quest:RemoveAll()
+
+	quest:Hide()
+	table.remove(self.quests, qid)
+	self.questsByName[quest.name] = nil
+	self.questCount = self.questCount - 1
+end
+
+function zone_proto:RemoveAll()
+	for qid, quest in ipairs(self.quests) do
+		self:Remove(qid, quest)
+	end
+end
+
 function zone_proto:AddQuest(uid, name, level, status)
 	if self.questsByName[name]then
 		if status then
@@ -261,6 +277,19 @@ local objOnLeave = function(self)
 	self.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 end
 
+function quest_proto:Remove(oid, obj)
+	obj:Hide()
+	table.remove(self.objectives, oid)
+	self.objectivesByName[obj.name] = nil
+	self.objectivesCount = self.objectivesCount - 1
+end
+
+function quest_proto:RemoveAll()
+	for oid, obj in ipairs(self.objectives) do
+		self:Remove(oid, obj)
+	end
+end
+
 function quest_proto:AddObjective(name, status)
 	if self.objectivesByName[name] then
 		if status then
@@ -272,7 +301,7 @@ function quest_proto:AddObjective(name, status)
 	self.objectivesCount = self.objectivesCount + 1
 
 	local row = newRow()
-	setmetatable(row, {__index = objective_proto})
+	setmetatable(row, { __index = objective_proto })
 
 	row.text:SetText(name)
 	row.right:SetText(status)

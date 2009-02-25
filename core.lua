@@ -77,18 +77,12 @@ function fux:Purge(tid)
 		for qid, quest in ipairs(zone.quests) do
 			for oid, obj in ipairs(quest.objectives) do
 				if obj.tid ~= tid then
-					obj:Hide()
-					table.remove(quest.objectives, oid)
-					quest.objectivesByName[obj.name] = nil
-					quest.objectivesCount = quest.objectivesCount - 1
+					quest:Remove(oid, obj)
 				end
 			end
 
 			if quest.tid ~= tid then
-				quest:Hide()
-				table.remove(zone.quests, qid)
-				zone.questsByName[quest.name] = nil
-				zone.questCount = zone.questCount - 1
+				zone:Remove(qid, quest)
 			end
 		end
 
@@ -134,9 +128,11 @@ function fux:QuestUpdate()
 			quest.tid = id
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
-					local status = got .. "/" .. need
-					local obj = quest:AddObjective(name, status)
-					obj.tid = id
+					if got ~= need then
+						local status = got .. "/" .. need
+						local obj = quest:AddObjective(name, status)
+						obj.tid = id
+					end
 				end
 			end
 		end
@@ -148,6 +144,7 @@ function fux:QuestUpdate()
 
 	self:Purge(id)
 end
+
 -- MADNESS ENSUES
 function fux:Reposition()
 	local height = 25
