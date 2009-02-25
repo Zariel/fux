@@ -151,7 +151,7 @@ function fux:Reposition()
 
 					if prev.visible and prev.objectivesCount > 0 then
 						local obj = prev.objectives[prev.objectivesCount]
-						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 2)
+						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 1)
 					else
 						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 1)
 					end
@@ -188,7 +188,7 @@ function fux:Reposition()
 		local next = self.zones[id + 1]
 		if next then
 			next:ClearAllPoints()
-			next:SetPoint("TOP", last, "BOTTOM", 0, -1)
+			next:SetPoint("TOP", last, "BOTTOM", 0, - 2)
 			next:SetPoint("LEFT", self.frame, "LEFT", 5, 0)
 		end
 	end
