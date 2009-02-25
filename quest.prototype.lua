@@ -105,7 +105,7 @@ function fux:NewZone(name)
 
 	setmetatable(row, {__index = zone_proto})
 
-	row.text:SetText("+" .. name)
+	row.text:SetText("-" .. name)
 	row.text:SetTextColor(fade, fade, fade)
 
 	row.name = name
@@ -222,7 +222,7 @@ function zone_proto:AddQuest(uid, name, level, status)
 end
 
 function zone_proto:HideAll()
-	self.text:SetText("-" .. self.name)
+	self.text:SetText("+" .. self.name)
 	for qid, q in ipairs(self.quests) do
 		q:Hide()
 		for oid, o in ipairs(q.objectives) do
@@ -233,7 +233,7 @@ function zone_proto:HideAll()
 end
 
 function zone_proto:ShowAll()
-	self.text:SetText("+" .. self.name)
+	self.text:SetText("-" .. self.name)
 	for qid, q in ipairs(self.quests) do
 		q:Show()
 		for oid, o in ipairs(q.objectives) do
