@@ -94,10 +94,12 @@ end
 
 local zoneOnEnter = function(self)
 	self.text:SetTextColor(1, 1, 1)
+	self.right:SetTextColor(1, 1, 1)
 end
 
 local zoneOnLeave = function(self)
 	self.text:SetTextColor(fade, fade, fade)
+	self.right:SetTextColor(fade, fade, fade)
 end
 
 function fux:NewZone(name)
@@ -143,11 +145,13 @@ end
 local questOnEnter = function(self)
 	local col = GetDifficultyColor(self.level)
 	self.text:SetTextColor(col.r, col.g, col.b)
+	self.right:SetTextColor(col.r, col.g, col.b)
 end
 
 local questOnLeave = function(self)
 	local col = GetDifficultyColor(self.level)
 	self.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+	self.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
 end
 
 function zone_proto:AddQuest(uid, name, level, status)
@@ -203,11 +207,13 @@ local objOnClick = function(self, button)
 end
 
 local objOnEnter = function(self)
-	self.text:SetTextColor(0.7, 0.7, 0.7)
+	self.text:SetTextColor(1, 1, 1)
+	self.right:SetTextColor(1, 1, 1)
 end
 
 local objOnLeave = function(self)
 	self.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
+	self.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 end
 
 function quest_proto:AddObjective(name, status)
@@ -224,6 +230,7 @@ function quest_proto:AddObjective(name, status)
 	row.right:SetText(status)
 
 	row.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
+	row.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 
 	row:EnableMouse(true)
 	row:SetScript("OnMouseUp", objOnClick)

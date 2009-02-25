@@ -116,7 +116,7 @@ function fux:Reposition()
 			for qid, quest in ipairs(zone.quests) do
 				height = height + 14
 
-				local l = math.max(math.floor(quest.text:GetStringWidth()), 200) + math.floor(quest.right:GetStringWidth()) + 30
+				local l = math.max(math.floor(quest.text:GetStringWidth()), 150) + math.floor(quest.right:GetStringWidth()) + 30
 				width = math.max(width, l)
 
 				quest.right:SetPoint("RIGHT", self.frame, - 15, 0)
@@ -141,7 +141,7 @@ function fux:Reposition()
 
 				for oid, obj in ipairs(quest.objectives) do
 					height = height + 14
-					local l = math.max(math.floor(obj.text:GetStringWidth()), 200) + math.floor(obj.right:GetStringWidth()) + 40
+					local l = math.max(math.floor(obj.text:GetStringWidth()), 150) + math.floor(obj.right:GetStringWidth()) + 40
 					width = math.max(width, l)
 
 					obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
