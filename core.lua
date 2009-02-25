@@ -78,6 +78,8 @@ function fux:Init()
 	for id, zone in ipairs(self.zones) do
 		if zone.name ~= current then
 			zone:HideAll()
+		else
+			zone:ShowAll()
 		end
 	end
 
@@ -116,7 +118,7 @@ function fux:QuestUpdate()
 end
 -- MADNESS ENSUES
 function fux:Reposition()
-	local height = 30
+	local height = 25
 	local width = 150
 
 	for id, zone in ipairs(self.zones) do
@@ -124,7 +126,7 @@ function fux:Reposition()
 
 		if id == 1 then
 			zone:ClearAllPoints()
-			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 5, - 30)
+			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 5, - 20)
 		end
 
 		local last = zone

@@ -124,7 +124,16 @@ end
 
 local questOnClick = function(self, button)
 	if button == "LeftButton" then
-		Q:ShowQuestLog(self.uid)
+		if IsAltKeyDown() then
+			if self.visible then
+				self:HideAll()
+			else
+				self:ShowAll()
+			end
+			fux:Reposition()
+		else
+			Q:ShowQuestLog(self.uid)
+		end
 	end
 end
 
@@ -155,6 +164,7 @@ function zone_proto:AddQuest(uid, name, level, status)
 	row.name = name
 	row.level = level
 	row.type = "quest"
+	row.visible = true
 
 	row:EnableMouse(true)
 	row:SetScript("OnEnter", questOnEnter)
@@ -200,6 +210,20 @@ function zone_proto:ShowAll()
 		for oid, o in ipairs(q.objectives) do
 			o:Show()
 		end
+	end
+	self.visible = true
+end
+
+function quest_proto:HideAll()
+	for oid, o in ipairs(self.objectives) do
+		o:Hide()
+	end
+	self.visible = false
+end
+
+function quest_proto:ShowAll()
+	for oid, o in ipairs(self.objectives) do
+		o:Show()
 	end
 	self.visible = true
 end
