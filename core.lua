@@ -2,7 +2,7 @@ local fux = LibStub("AceAddon-3.0"):NewAddon("Fux", "AceEvent-3.0")
 local Q = LibStub("LibQuixote-2.0")
 
 function fux:OnInitialize()
-	local f = CreateFrame("Frame", nil, UIParent)
+	local f = CreateFrame("Frame", "FuxFrame", UIParent)
 	f:SetHeight(425)
 	f:SetWidth(300)
 	f:SetBackdrop({
@@ -13,6 +13,18 @@ function fux:OnInitialize()
 	f:SetBackdropColor(0, 0, 0, 0.8)
 
 	f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -500)
+	f:EnableMouse(true)
+	f:SetMovable(true)
+	f:SetScript("OnMouseDown", function(self, button)
+		if button == "LeftButton" and IsAltKeyDown() then
+			self:StartMoving()
+		end
+	end)
+
+	f:SetScript("OnMouseUp", function(self, button)
+		self:StopMovingOrSizing()
+	end)
+
 	f:Show()
 
 	local t = f:CreateFontString(nil, "OVERLAY")
@@ -123,6 +135,7 @@ function fux:Reposition()
 
 	for id, zone in ipairs(self.zones) do
 		height = height + 16
+		width = math.max(math.max(math.floor(zone.text:GetStringWidth()), 150), width)
 
 		if id == 1 then
 			zone:ClearAllPoints()
