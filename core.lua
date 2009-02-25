@@ -127,8 +127,11 @@ function fux:QuestUpdate()
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
 			local quest = zone:AddQuest(uid, title, level, complete and "(done)")
 			quest.tid = id
+			quest.got, quest.need = 0, 0
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
+					quest.got = quest.got + got
+					quest.need = quest.need + need
 					if got ~= need then
 						local obj = quest:AddObjective(name, got, need)
 						obj.tid = id

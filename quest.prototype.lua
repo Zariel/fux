@@ -240,13 +240,10 @@ end
 
 -- Quest public functions
 function quest_proto:HideAll()
-	local got, need = 0, 0
 	for oid, o in ipairs(self.objectives) do
-		got = got + o.got
-		need = need + o.need
 		o:Hide()
 	end
-	self.right:SetText(got .. "/" .. need)
+	self.right:SetText(self.got .. "/" .. self.need)
 	self.visible = false
 end
 
