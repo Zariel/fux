@@ -24,12 +24,43 @@ do
 			row.text = text
 
 			local level = row:CreateFontString(nil, "OVERLAY")
-			level:SetPoint("TOPRIGHT", row, "TOPRIGHT")
+			level:SetPoint("RIGHT", row)
+			level:SetPoint("TOP", row)
+			level:SetPoint("BOTTOM", row)
+			level:SetJustifyH("RIGHT")
 			level:SetFont(STANDARD_TEXT_FONT, height)
 			row.right = level
 		end
 
 		return row
+	end
+
+	local cleanTable = function(t)
+		for id, C in pairs(t) do
+			C:Hide()
+			C.text:SetText("")
+			C.right:SetText("")
+			C:ClearAllPoints()
+		end
+
+		return true
+	end
+
+	delRow = function(row)
+		if row.type == "zone" then
+			cleanTable(fux.zones[row.id])
+			table.remove(fux.zones, row.id)
+			fux.zonesByName[row.name] = nil
+			fux.zoneCount = fux.zoneCount - 1
+
+			cleanTable(row.quests)
+
+			cleanTable(row.quests.objectives)
+
+		elseif row.type == "quest" then
+		end
+
+		cache[row] = true
 	end
 end
 
@@ -43,6 +74,7 @@ local zoneOnClick = function(self, button)
 					o:Hide()
 				end
 			end
+			self.visible = false
 		else
 			self.text:SetText("+" .. self.name)
 			for qid, q in ipairs(self.quests) do
@@ -51,6 +83,7 @@ local zoneOnClick = function(self, button)
 					o:Show()
 				end
 			end
+			self.visible = true
 		end
 		fux:Reposition()
 	end
@@ -65,15 +98,17 @@ function fux:NewZone(name)
 
 	local row = newRow(14)
 
+	row:EnableMouse()
 	row:SetScript("OnMouseUp", zoneOnClick)
 
 	setmetatable(row, {__index = zone_proto})
 
-	row.text:SetText(name)
+	row.text:SetText("+" .. name)
 
 	row.name = name
 	row.id = fux.zonesCount
 	row.visible = true
+	row.type = "zone"
 
 	row.quests = {}
 	row.questsByName = {}
@@ -95,11 +130,11 @@ function zone_proto:AddQuest(name, level, status)
 	local row = newRow()
 	setmetatable(row, {__index = quest_proto})
 
-	row:EnableMouse()
 	row.text:SetText(string.format("[%d] %s", level, name))
 
 	row.name = name
 	row.level = level
+	row.type = "quest"
 
 	if status then
 		row.status = status
@@ -134,6 +169,7 @@ function quest_proto:AddObjective(name, status)
 	row.name = name
 	row.status = status
 	row.id = self.objectivesCount
+	row.type = "objective"
 
 	table.insert(self.objectives, row)
 	self.objectivesByName[name] = row
