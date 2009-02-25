@@ -129,8 +129,7 @@ function fux:QuestUpdate()
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
 					if got ~= need then
-						local status = got .. "/" .. need
-						local obj = quest:AddObjective(name, status)
+						local obj = quest:AddObjective(name, got, need)
 						obj.tid = id
 					end
 				end

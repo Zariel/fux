@@ -183,6 +183,7 @@ function zone_proto:AddQuest(uid, name, level, status)
 	row.name = name
 	row.level = level
 	row.type = "quest"
+	row.status = status
 	row.visible = true
 
 	row:EnableMouse(true)
@@ -244,21 +245,24 @@ function zone_proto:ShowAll()
 end
 
 function quest_proto:HideAll()
+	local got, need = 0, 0
 	for oid, o in ipairs(self.objectives) do
+		got = got + o.got
+		need = need + o.need
 		o:Hide()
 	end
+	self.right:SetText(got .. "/" .. need)
 	self.visible = false
 end
 
 function quest_proto:ShowAll()
+	if self.status ~= "(done)" then
+		self.right:SetText("")
+	end
 	for oid, o in ipairs(self.objectives) do
 		o:Show()
 	end
 	self.visible = true
-end
-
-function quest_proto:SetStatus(status)
-	self.right:SetText(status)
 end
 
 local objOnClick = function(self, button)
@@ -290,10 +294,13 @@ function quest_proto:RemoveAll()
 	end
 end
 
-function quest_proto:AddObjective(name, status)
+function quest_proto:AddObjective(name, got, need)
 	if self.objectivesByName[name] then
-		if status then
-			self.objectivesByName[name]:SetStatus(status)
+		if got and need then
+			local obj = self.self.objectivesByName[name]
+			obj.right:SetText(got .. "/" .. need)
+			obj.got = got
+			obj.need = need
 		end
 		return self.objectivesByName[name]
 	end
@@ -304,7 +311,7 @@ function quest_proto:AddObjective(name, status)
 	setmetatable(row, { __index = objective_proto })
 
 	row.text:SetText(name)
-	row.right:SetText(status)
+	row.right:SetText(got .. "/" .. need)
 
 	row.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 	row.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
@@ -315,7 +322,8 @@ function quest_proto:AddObjective(name, status)
 	row:SetScript("OnLeave", objOnLeave)
 
 	row.name = name
-	row.status = status
+	row.got = got
+	row.need = need
 	row.id = self.objectivesCount
 	row.type = "objective"
 
@@ -323,8 +331,4 @@ function quest_proto:AddObjective(name, status)
 	self.objectivesByName[name] = row
 
 	return row
-end
-
-function objective_proto:SetStatus(status)
-	self.right:SetText(status)
 end
