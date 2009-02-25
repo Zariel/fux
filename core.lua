@@ -55,6 +55,11 @@ function fux:OnInitialize()
 end
 
 function fux:OnEnable()
+	local q = _G.QuestWatchFrame
+	q:Hide()
+	q.Show = function() end
+	q:UnregisterAllEvents()
+
 	self.zones = {}
 	self.zonesByName = {}
 	self.zoneCount = 0
