@@ -40,11 +40,11 @@ function fux:OnEnable()
 	self:QuestUpdate()
 end
 
-function fux:Purge(uid)
+function fux:Purge(tid)
 	for id, zone in ipairs(self.zones) do
 		for qid, quest in ipairs(zone.quests) do
 			for oid, obj in ipairs(quest.objectives) do
-				if obj.uid ~= uid then
+				if obj.tid ~= tid then
 					obj:Hide()
 					table.remove(quest.objectives, oid)
 					quest.objectivesByName[obj.name] = nil
@@ -52,7 +52,7 @@ function fux:Purge(uid)
 				end
 			end
 
-			if quest.uid ~= uid then
+			if quest.tid ~= tid then
 				quest:Hide()
 				table.remove(zone.quests, qui)
 				zone.questsByName[quest.name] = nil
@@ -61,42 +61,43 @@ function fux:Purge(uid)
 		end
 
 		-- TODO: Later cache these
-		if zone.uid ~= uid then
+		if zone.tid ~= tid then
 			zone:Hide()
 			table.remove(self.zones, id)
 			self.zonesByName[zone.name] = nil
-			self.zonesCount = self.zonesCount - 1
+			self.zoneCount = self.zoneCount - 1
 		end
 	end
 
 	self:Reposition()
 end
-
 function fux:QuestUpdate()
+	local q = Q:GetNumQuests()
+	self.frame.title:SetText("Fux - " .. q .. "/25")
+
 	local id = GetTime()
 	for _, z, n in Q:IterateZones() do
 		local zone = self:NewZone(z)
-		zone.uid = id
+		zone.tid = id
 
-		for _, uid, qid, title, level, objectives, complete in Q:IterateQuestsInZone(z) do
-			local quest = zone:AddQuest(title, level, "stuff")
-			quest.uid = id
-			--[[if objectives and objectives > 0 then
-				for _, objective, got, need, t in Q:IterateObjectivesForQuest(uid) do
+		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
+			local quest = zone:AddQuest(uid, title, level)
+			quest.tid = id
+			if objectives and objectives > 0 then
+				for name, got, need in Q:IterateObjectivesForQuest(uid) do
 					local status = got .. "/" .. need
 					local obj = quest:AddObjective(name, status)
-					obj.uid = id
+					obj.tid = id
 				end
-			end]]
+			end
 		end
 	end
 	self:Purge(id)
 end
-
 -- MADNESS ENSUES
 function fux:Reposition()
-	local height = 60
-	local width = 200
+	local height = 50
+	local width = 150
 
 	for id, zone in ipairs(self.zones) do
 		height = height + 16
@@ -122,11 +123,11 @@ function fux:Reposition()
 				quest:ClearAllPoints()
 
 				if qid == 1 then
-					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 10, - 3)
+					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 10, 0)
 				else
 					local prev = zone.quests[qid - 1]
 
-					if prev.objectivesCount > 1 then
+					if prev.objectivesCount > 0 then
 						local obj = prev.objectives[prev.objectivesCount]
 						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 3)
 					else
@@ -139,20 +140,21 @@ function fux:Reposition()
 				last = quest
 
 				for oid, obj in ipairs(quest.objectives) do
-					height = height + 12
+					height = height + 14
 					local l = math.max(math.floor(obj.text:GetStringWidth()), 200) + math.floor(obj.right:GetStringWidth()) + 40
-					width = math.max(width, ll + lr)
+					width = math.max(width, l)
 
-					obj.right:SetPoint("RIGHT", self.frame, - 40, 0)
+					obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
 					obj:ClearAllPoints()
 
 					if oid == 1 then
-						obj:SetPoint("TOPLEFT", quest, "BOTTOMLEFT", 5, - 3)
+						obj:SetPoint("TOP", quest, "BOTTOM", 0, - 3)
 					else
 						local prev = quest.objectives[oid - 1]
 						obj:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
-						obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
 					end
+
+					obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
 
 					last = obj
 				end
