@@ -184,7 +184,7 @@ end
 function zone_proto:AddQuest(uid, name, level, status)
 	if self.questsByName[name]then
 		if status then
-			self.questsByName[name]:SetStatus(status)
+			self.questsByName[name].right:SetText(status)
 		end
 		return self.questsByName[name]
 	end
