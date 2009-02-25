@@ -38,36 +38,9 @@ do
 
 		return row
 	end
-
-	local cleanTable = function(t)
-		for id, C in pairs(t) do
-			C:Hide()
-			C.text:SetText("")
-			C.right:SetText("")
-			C:ClearAllPoints()
-		end
-
-		return true
-	end
-
-	delRow = function(row)
-		if row.type == "zone" then
-			cleanTable(fux.zones[row.id])
-			table.remove(fux.zones, row.id)
-			fux.zonesByName[row.name] = nil
-			fux.zoneCount = fux.zoneCount - 1
-
-			cleanTable(row.quests)
-
-			cleanTable(row.quests.objectives)
-
-		elseif row.type == "quest" then
-		end
-
-		cache[row] = true
-	end
 end
 
+-- Zone Script Handlers
 local zoneOnClick = function(self, button)
 	if button == "LeftButton" then
 		if self.visible then
@@ -89,6 +62,52 @@ local zoneOnLeave = function(self)
 	self.right:SetTextColor(fade, fade, fade)
 end
 
+-- Quest Script Handlers
+local questOnClick = function(self, button)
+	if button == "LeftButton" then
+		if IsAltKeyDown() then
+			if self.visible then
+				self:HideAll()
+			else
+				self:ShowAll()
+			end
+			fux:Reposition()
+		else
+			Q:ShowQuestLog(self.uid)
+		end
+	end
+end
+
+local questOnEnter = function(self)
+	local col = GetDifficultyColor(self.level)
+	self.text:SetTextColor(col.r, col.g, col.b)
+	self.right:SetTextColor(col.r, col.g, col.b)
+end
+
+local questOnLeave = function(self)
+	local col = GetDifficultyColor(self.level)
+	self.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+	self.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+end
+
+-- Objective Script Handlers
+local objOnClick = function(self, button)
+	if button == "LeftButton" then
+		Q:ShowQuestLog(self.uid)
+	end
+end
+
+local objOnEnter = function(self)
+	self.text:SetTextColor(1, 1, 1)
+	self.right:SetTextColor(1, 1, 1)
+end
+
+local objOnLeave = function(self)
+	self.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
+	self.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
+end
+
+-- Zone Creation
 function fux:NewZone(name)
 	if self.zonesByName[name] then
 		return self.zonesByName[name]
@@ -123,33 +142,7 @@ function fux:NewZone(name)
 	return row
 end
 
-local questOnClick = function(self, button)
-	if button == "LeftButton" then
-		if IsAltKeyDown() then
-			if self.visible then
-				self:HideAll()
-			else
-				self:ShowAll()
-			end
-			fux:Reposition()
-		else
-			Q:ShowQuestLog(self.uid)
-		end
-	end
-end
-
-local questOnEnter = function(self)
-	local col = GetDifficultyColor(self.level)
-	self.text:SetTextColor(col.r, col.g, col.b)
-	self.right:SetTextColor(col.r, col.g, col.b)
-end
-
-local questOnLeave = function(self)
-	local col = GetDifficultyColor(self.level)
-	self.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
-	self.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
-end
-
+-- Zone Public functions
 function zone_proto:Remove(qid, quest)
 	quest:RemoveAll()
 
@@ -165,6 +158,29 @@ function zone_proto:RemoveAll()
 	end
 end
 
+function zone_proto:HideAll()
+	self.text:SetText("+" .. self.name)
+	for qid, q in ipairs(self.quests) do
+		q:Hide()
+		for oid, o in ipairs(q.objectives) do
+			o:Hide()
+		end
+	end
+	self.visible = false
+end
+
+function zone_proto:ShowAll()
+	self.text:SetText("-" .. self.name)
+	for qid, q in ipairs(self.quests) do
+		q:Show()
+		for oid, o in ipairs(q.objectives) do
+			o:Show()
+		end
+	end
+	self.visible = true
+end
+
+-- Quest Creation
 function zone_proto:AddQuest(uid, name, level, status)
 	if self.questsByName[name]then
 		if status then
@@ -222,28 +238,7 @@ function zone_proto:AddQuest(uid, name, level, status)
 	return row
 end
 
-function zone_proto:HideAll()
-	self.text:SetText("+" .. self.name)
-	for qid, q in ipairs(self.quests) do
-		q:Hide()
-		for oid, o in ipairs(q.objectives) do
-			o:Hide()
-		end
-	end
-	self.visible = false
-end
-
-function zone_proto:ShowAll()
-	self.text:SetText("-" .. self.name)
-	for qid, q in ipairs(self.quests) do
-		q:Show()
-		for oid, o in ipairs(q.objectives) do
-			o:Show()
-		end
-	end
-	self.visible = true
-end
-
+-- Quest public functions
 function quest_proto:HideAll()
 	local got, need = 0, 0
 	for oid, o in ipairs(self.objectives) do
@@ -265,22 +260,6 @@ function quest_proto:ShowAll()
 	self.visible = true
 end
 
-local objOnClick = function(self, button)
-	if button == "LeftButton" then
-		Q:ShowQuestLog(self.uid)
-	end
-end
-
-local objOnEnter = function(self)
-	self.text:SetTextColor(1, 1, 1)
-	self.right:SetTextColor(1, 1, 1)
-end
-
-local objOnLeave = function(self)
-	self.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
-	self.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
-end
-
 function quest_proto:Remove(oid, obj)
 	obj:Hide()
 	table.remove(self.objectives, oid)
@@ -294,6 +273,7 @@ function quest_proto:RemoveAll()
 	end
 end
 
+-- Objective creation
 function quest_proto:AddObjective(name, got, need)
 	if self.objectivesByName[name] then
 		if got and need then
@@ -332,3 +312,5 @@ function quest_proto:AddObjective(name, got, need)
 
 	return row
 end
+
+
