@@ -69,25 +69,7 @@ end
 
 local zoneOnClick = function(self, button)
 	if button == "LeftButton" then
-		if self.visible then
-			self.text:SetText("-" .. self.name)
-			for qid, q in ipairs(self.quests) do
-				q:Hide()
-				for oid, o in ipairs(q.objectives) do
-					o:Hide()
-				end
-			end
-			self.visible = false
-		else
-			self.text:SetText("+" .. self.name)
-			for qid, q in ipairs(self.quests) do
-				q:Show()
-				for oid, o in ipairs(q.objectives) do
-					o:Show()
-				end
-			end
-			self.visible = true
-		end
+		self:HideAll()
 		fux:Reposition()
 	end
 end
@@ -194,6 +176,28 @@ function zone_proto:AddQuest(uid, name, level, status)
 	self.questsByName[name] = row
 
 	return row
+end
+
+function zone_proto:HideAll()
+	if self.visible then
+		self.text:SetText("-" .. self.name)
+		for qid, q in ipairs(self.quests) do
+			q:Hide()
+			for oid, o in ipairs(q.objectives) do
+				o:Hide()
+			end
+		end
+		self.visible = false
+	else
+		self.text:SetText("+" .. self.name)
+		for qid, q in ipairs(self.quests) do
+			q:Show()
+			for oid, o in ipairs(q.objectives) do
+				o:Show()
+			end
+		end
+		self.visible = true
+	end
 end
 
 function quest_proto:SetStatus(status)
