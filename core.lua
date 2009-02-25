@@ -2,7 +2,15 @@ local fux = LibStub("AceAddon-3.0"):NewAddon("Fux", "AceEvent-3.0")
 local Q = LibStub("LibQuixote-2.0")
 
 function fux:OnInitialize()
-	local f = CreateFrame("Frame", "FuxFrame", UIParent)
+	_G.Fuxdb = _G.Fuxdb or {
+			x = 0,
+			y = 500,
+		}
+
+	self.db = _G.Fuxdb
+	_G.Fuxdb = self.db
+
+	local f = CreateFrame("Frame", nil, UIParent)
 	f:SetHeight(425)
 	f:SetWidth(300)
 	f:SetBackdrop({
@@ -12,16 +20,23 @@ function fux:OnInitialize()
 	})
 	f:SetBackdropColor(0, 0, 0, 0.8)
 
-	f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -500)
+	f:SetClampedToScreen(true)
+	f:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", fux.db.x, fux.db.y)
 	f:EnableMouse(true)
 	f:SetMovable(true)
+
 	f:SetScript("OnMouseDown", function(self, button)
 		if button == "LeftButton" and IsAltKeyDown() then
+			self:ClearAllPoints()
 			self:StartMoving()
 		end
 	end)
 
 	f:SetScript("OnMouseUp", function(self, button)
+		local x,y = self:GetLeft(), self:GetTop()
+		fux.db.x = x
+		fux.db.y = y
+
 		self:StopMovingOrSizing()
 	end)
 
