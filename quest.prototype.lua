@@ -190,7 +190,15 @@ function zone_proto:AddQuest(uid, name, level, status)
 	row.objectivesByName = {}
 	row.objectivesCount = 0
 
-	table.insert(self.quests, row)
+	local pos = 1
+	for i, q in ipairs(self.quests) do
+		if level < q.level then
+			pos = i
+			break
+		end
+	end
+
+	table.insert(self.quests, pos, row)
 	self.questsByName[name] = row
 
 	return row
