@@ -149,11 +149,11 @@ function fux:Reposition()
 				else
 					local prev = zone.quests[qid - 1]
 
-					if prev.objectivesCount > 0 then
+					if prev.visible and prev.objectivesCount > 0 then
 						local obj = prev.objectives[prev.objectivesCount]
 						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 2)
 					else
-						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 2)
+						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 1)
 					end
 
 					quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
@@ -161,24 +161,26 @@ function fux:Reposition()
 
 				last = quest
 
-				for oid, obj in ipairs(quest.objectives) do
-					height = height + 13
-					local l = math.max(math.floor(obj.text:GetStringWidth()), 150) + math.floor(obj.right:GetStringWidth()) + 40
-					width = math.max(width, l)
+				if quest.visible then
+					for oid, obj in ipairs(quest.objectives) do
+						height = height + 13
+						local l = math.max(math.floor(obj.text:GetStringWidth()), 150) + math.floor(obj.right:GetStringWidth()) + 40
+						width = math.max(width, l)
 
-					obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
-					obj:ClearAllPoints()
+						obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
+						obj:ClearAllPoints()
 
-					if oid == 1 then
-						obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
-					else
-						local prev = quest.objectives[oid - 1]
-						obj:SetPoint("TOP", prev, "BOTTOM", 0, - 2)
+						if oid == 1 then
+							obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
+						else
+							local prev = quest.objectives[oid - 1]
+							obj:SetPoint("TOP", prev, "BOTTOM", 0, - 2)
+						end
+
+						obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
+
+						last = obj
 					end
-
-					obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
-
-					last = obj
 				end
 			end
 		end
