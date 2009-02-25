@@ -176,6 +176,7 @@ function zone_proto:AddQuest(uid, name, level, status)
 
 	local col = GetDifficultyColor(level)
 	row.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+	row.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
 
 	if status then
 		row.status = status
@@ -254,7 +255,7 @@ end
 function quest_proto:AddObjective(name, status)
 	if self.objectivesByName[name] then
 		if status then
-			self.objectivesByName:SetStatus(status)
+			self.objectivesByName[name]:SetStatus(status)
 		end
 		return self.objectivesByName[name]
 	end

@@ -54,7 +54,7 @@ function fux:Purge(tid)
 
 			if quest.tid ~= tid then
 				quest:Hide()
-				table.remove(zone.quests, qui)
+				table.remove(zone.quests, qid)
 				zone.questsByName[quest.name] = nil
 				zone.questCount = zone.questCount - 1
 			end
@@ -110,11 +110,12 @@ function fux:QuestUpdate()
 		end
 	end
 
+	--[[
 	for id, zone in pairs(self.zones) do
 		table.sort(zone.quests, function(a, b)
 			return a.level < b.level
 		end)
-	end
+	end]]
 
 	if not self.init then
 		self:Init()
@@ -137,7 +138,6 @@ function fux:Reposition()
 
 		local last = zone
 		if zone.visible then
-
 			for qid, quest in ipairs(zone.quests) do
 				height = height + 14
 
