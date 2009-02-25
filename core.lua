@@ -110,13 +110,6 @@ function fux:QuestUpdate()
 		end
 	end
 
-	--[[
-	for id, zone in pairs(self.zones) do
-		table.sort(zone.quests, function(a, b)
-			return a.level < b.level
-		end)
-	end]]
-
 	if not self.init then
 		self:Init()
 	end

@@ -192,8 +192,8 @@ function zone_proto:AddQuest(uid, name, level, status)
 
 	local pos = 1
 	for i, q in ipairs(self.quests) do
+		pos = i + 1
 		if level < q.level then
-			pos = i
 			break
 		end
 	end
