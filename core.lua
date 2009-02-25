@@ -156,6 +156,7 @@ function fux:Reposition()
 	for id, zone in ipairs(self.zones) do
 		height = height + 16
 		width = math.max(math.max(math.floor(zone.text:GetStringWidth()), 150), width)
+		zone:SetWidth(width - 5)
 
 		if id == 1 then
 			zone:ClearAllPoints()
@@ -171,6 +172,7 @@ function fux:Reposition()
 				local l = math.max(math.floor(quest.text:GetStringWidth()), 150) + math.floor(quest.right:GetStringWidth()) + 30
 				width = math.max(width, l)
 
+				quest:SetWidth(width - 30)
 				quest.right:SetPoint("RIGHT", self.frame, - 15, 0)
 				quest:ClearAllPoints()
 
@@ -196,6 +198,7 @@ function fux:Reposition()
 						local l = math.max(math.floor(obj.text:GetStringWidth()) + 40, 150) + math.floor(obj.right:GetStringWidth()) + 40
 						width = math.max(width, l)
 
+						obj:SetWidth(width - 40)
 						obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
 						obj:ClearAllPoints()
 
