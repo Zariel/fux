@@ -1,4 +1,4 @@
-local fux = LibStub("AceAddon-3.0"):NewAddon("Fux")
+local fux = LibStub("AceAddon-3.0"):NewAddon("Fux", "AceEvent-3.0")
 local Q = LibStub("LibQuixote-2.0")
 
 function fux:OnInitialize()
@@ -37,7 +37,7 @@ function fux:OnEnable()
 	self.objIndent = 10
 
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
-	self:QuestUpdate()
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "Init")
 end
 
 function fux:Purge(tid)
@@ -71,6 +71,21 @@ function fux:Purge(tid)
 
 	self:Reposition()
 end
+
+function fux:Init()
+	local current = GetRealZoneText()
+
+	for id, zone in ipairs(self.zones) do
+		if zone.name ~= current then
+			zone:HideAll()
+		end
+	end
+
+	self:Reposition()
+
+	self.init = true
+end
+
 function fux:QuestUpdate()
 	local q = Q:GetNumQuests()
 	self.frame.title:SetText("Fux - " .. q .. "/25")
@@ -83,7 +98,7 @@ function fux:QuestUpdate()
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
 			local quest = zone:AddQuest(uid, title, level)
 			quest.tid = id
-			if objectives and objectives > 0 then
+			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
 					local status = got .. "/" .. need
 					local obj = quest:AddObjective(name, status)
@@ -92,6 +107,11 @@ function fux:QuestUpdate()
 			end
 		end
 	end
+
+	if not self.init then
+		self:Init()
+	end
+
 	self:Purge(id)
 end
 -- MADNESS ENSUES
@@ -129,9 +149,9 @@ function fux:Reposition()
 
 					if prev.objectivesCount > 0 then
 						local obj = prev.objectives[prev.objectivesCount]
-						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 3)
+						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 2)
 					else
-						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 2)
 					end
 
 					quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
@@ -151,7 +171,7 @@ function fux:Reposition()
 						obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
 					else
 						local prev = quest.objectives[oid - 1]
-						obj:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
+						obj:SetPoint("TOP", prev, "BOTTOM", 0, - 2)
 					end
 
 					obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
