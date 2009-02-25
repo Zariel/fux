@@ -48,6 +48,7 @@ function fux:OnInitialize()
 	t:SetPoint("RIGHT")
 	t:SetFont(STANDARD_TEXT_FONT, 16)
 	t:SetText("Fux Title")
+	t:SetTextColor(0.8, 0.8, 0.8)
 
 	f.title = t
 
