@@ -297,7 +297,7 @@ end
 function quest_proto:AddObjective(name, got, need)
 	if self.objectivesByName[name] then
 		if got and need then
-			local obj = self.self.objectivesByName[name]
+			local obj = self.objectivesByName[name]
 			obj.right:SetText(got .. "/" .. need)
 			obj.got = got
 			obj.need = need
