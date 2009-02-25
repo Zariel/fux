@@ -96,7 +96,7 @@ function fux:QuestUpdate()
 end
 -- MADNESS ENSUES
 function fux:Reposition()
-	local height = 50
+	local height = 30
 	local width = 150
 
 	for id, zone in ipairs(self.zones) do
@@ -140,7 +140,7 @@ function fux:Reposition()
 				last = quest
 
 				for oid, obj in ipairs(quest.objectives) do
-					height = height + 14
+					height = height + 13
 					local l = math.max(math.floor(obj.text:GetStringWidth()), 150) + math.floor(obj.right:GetStringWidth()) + 40
 					width = math.max(width, l)
 
@@ -148,7 +148,7 @@ function fux:Reposition()
 					obj:ClearAllPoints()
 
 					if oid == 1 then
-						obj:SetPoint("TOP", quest, "BOTTOM", 0, - 3)
+						obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
 					else
 						local prev = quest.objectives[oid - 1]
 						obj:SetPoint("TOP", prev, "BOTTOM", 0, - 3)
@@ -164,7 +164,7 @@ function fux:Reposition()
 		local next = self.zones[id + 1]
 		if next then
 			next:ClearAllPoints()
-			next:SetPoint("TOP", last, "BOTTOM", 0, - 3)
+			next:SetPoint("TOP", last, "BOTTOM", 0, -1)
 			next:SetPoint("LEFT", self.frame, "LEFT", 5, 0)
 		end
 	end
