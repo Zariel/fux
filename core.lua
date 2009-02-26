@@ -38,6 +38,8 @@ function fux:OnInitialize()
 		fux.db.y = y
 
 		self:StopMovingOrSizing()
+		self:ClearAllPoints()
+		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 	end)
 
 	f:Show()
