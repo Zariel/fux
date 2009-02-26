@@ -1,6 +1,6 @@
 ## Title: Fux
 ## Interface: 30000
-## Version: 3.0.9-4
+## Version: 3.0.9-5
 ## Author: Zariel
 ## OptionalDeps: Ace3, LibQuixote-2.0
 ## SavedVariables: Fuxdb
