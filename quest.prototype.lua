@@ -283,6 +283,9 @@ function quest_proto:AddObjective(name, got, need)
 			obj.got = got
 			obj.need = need
 		end
+		if not self.visible and self.need > 0 then
+			self.right:SetText(self.got .. "/" .. self.need)
+		end
 		return self.objectivesByName[name]
 	end
 
