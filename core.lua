@@ -169,7 +169,7 @@ function fux:Reposition()
 				last = quest
 
 				height = height + 14
-				local l = math.max(math.floor(quest.text:GetStringWidth()) + 10, 150) + math.floor(quest.right:GetStringWidth()) + 30
+				local l = math.max(math.floor(quest.text:GetStringWidth()) + 15, 150) + math.floor(quest.right:GetStringWidth()) + 30
 				width = math.max(width, l)
 
 				quest:SetWidth(width - 30)
