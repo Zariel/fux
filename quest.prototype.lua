@@ -243,7 +243,9 @@ function quest_proto:HideAll()
 	for oid, o in ipairs(self.objectives) do
 		o:Hide()
 	end
-	self.right:SetText(self.got .. "/" .. self.need)
+	if self.need > 0 then
+		self.right:SetText(self.got .. "/" .. self.need)
+	end
 	self.visible = false
 end
 
