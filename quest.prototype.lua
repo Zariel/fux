@@ -174,7 +174,9 @@ function zone_proto:ShowAll()
 	for qid, q in ipairs(self.quests) do
 		q:Show()
 		for oid, o in ipairs(q.objectives) do
-			o:Show()
+			if q.visible then
+				o:Show()
+			end
 		end
 	end
 	self.visible = true
@@ -311,5 +313,3 @@ function quest_proto:AddObjective(name, got, need)
 
 	return row
 end
-
-
