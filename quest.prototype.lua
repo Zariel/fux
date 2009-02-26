@@ -93,7 +93,7 @@ end
 -- Objective Script Handlers
 local objOnClick = function(self, button)
 	if button == "LeftButton" then
-		Q:ShowQuestLog(self.uid)
+		Q:ShowQuestLog(self.qid)
 	end
 end
 
@@ -275,7 +275,7 @@ function quest_proto:RemoveAll()
 end
 
 -- Objective creation
-function quest_proto:AddObjective(name, got, need)
+function quest_proto:AddObjective(qid, name, got, need)
 	if self.objectivesByName[name] then
 		if got and need then
 			local obj = self.objectivesByName[name]
@@ -310,6 +310,7 @@ function quest_proto:AddObjective(name, got, need)
 	row.need = need
 	row.id = self.objectivesCount
 	row.type = "objective"
+	row.qid = qid
 
 	table.insert(self.objectives, row)
 	self.objectivesByName[name] = row

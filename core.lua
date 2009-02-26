@@ -133,7 +133,7 @@ function fux:QuestUpdate()
 					quest.got = quest.got + got
 					quest.need = quest.need + need
 					if got ~= need then
-						local obj = quest:AddObjective(name, got, need)
+						local obj = quest:AddObjective(qid, name, got, need)
 						obj.tid = id
 					end
 				end
@@ -169,7 +169,7 @@ function fux:Reposition()
 				last = quest
 
 				height = height + 14
-				local l = math.max(math.floor(quest.text:GetStringWidth()), 150) + math.floor(quest.right:GetStringWidth()) + 30
+				local l = math.max(math.floor(quest.text:GetStringWidth()) + 10, 150) + math.floor(quest.right:GetStringWidth()) + 30
 				width = math.max(width, l)
 
 				quest:SetWidth(width - 30)
