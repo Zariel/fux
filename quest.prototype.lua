@@ -247,7 +247,6 @@ function quest_proto:HideAll()
 	end
 	if self.need > 0 then
 		self.right:SetText(self.got .. "/" .. self.need)
-		print(self.got, self.need)
 	end
 	self.visible = false
 end
