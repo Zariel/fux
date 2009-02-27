@@ -308,7 +308,8 @@ function quest_proto:AddObjective(qid, name, got, need)
 
 	row.name = name
 	row.got = got
-	self.need = need
+	row.need = need
+
 	row.id = self.objectivesCount
 	row.type = "objective"
 	row.qid = qid
