@@ -135,7 +135,7 @@ function fux:QuestUpdate()
 					quest.got = quest.got + got
 					quest.need = quest.need + need
 					if got ~= need then
-						local obj = quest:AddObjective(qid, name, got, need)
+						local obj = quest:AddObjective(uid, name, got, need)
 						obj.tid = id
 					end
 				end
