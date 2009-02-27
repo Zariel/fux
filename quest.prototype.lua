@@ -279,10 +279,9 @@ function quest_proto:AddObjective(qid, name, got, need)
 	if self.objectivesByName[name] then
 		if got and need then
 			local obj = self.objectivesByName[name]
-			obj.right:SetText(got .. "/" .. need + got)
+			obj.right:SetText(got .. "/" .. need)
 			obj.got = got
 			obj.need = need
-			obj.total = need + got
 		end
 		if not self.visible and self.need > 0 then
 			self.right:SetText(self.got .. "/" .. self.need)
