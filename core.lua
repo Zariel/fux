@@ -175,7 +175,7 @@ function fux:Reposition()
 				width = math.max(width, l)
 
 				quest:SetWidth(width - 30)
-				quest.right:SetPoint("RIGHT", self.frame, - 15, 0)
+				quest.right:SetPoint("RIGHT", self.frame, - 10, 0)
 				quest:ClearAllPoints()
 
 				if qid == 1 then
@@ -201,7 +201,7 @@ function fux:Reposition()
 						width = math.max(width, l)
 
 						obj:SetWidth(width - 40)
-						obj.right:SetPoint("RIGHT", self.frame, - 20, 0)
+						obj.right:SetPoint("RIGHT", self.frame, - 10, 0)
 						obj:ClearAllPoints()
 
 						if oid == 1 then
