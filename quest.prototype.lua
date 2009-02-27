@@ -246,7 +246,7 @@ function quest_proto:HideAll()
 		o:Hide()
 	end
 	if self.need > 0 then
-		self.right:SetText(self.got .. "/" .. self.need)
+		self.right:SetText(self.got .. "/" .. self.got + self.need)
 	end
 	self.visible = false
 end
@@ -279,12 +279,12 @@ function quest_proto:AddObjective(qid, name, got, need)
 	if self.objectivesByName[name] then
 		if got and need then
 			local obj = self.objectivesByName[name]
-			obj.right:SetText(got .. "/" .. need)
+			obj.right:SetText(got .. "/" .. need + got)
 			obj.got = got
-			obj.need = need
+			obj.total = need + got
 		end
 		if not self.visible and self.need > 0 then
-			self.right:SetText(self.got .. "/" .. self.need)
+			self.right:SetText(self.got .. "/" .. self.need + self.got)
 		end
 		return self.objectivesByName[name]
 	end
@@ -295,7 +295,7 @@ function quest_proto:AddObjective(qid, name, got, need)
 	setmetatable(row, { __index = objective_proto })
 
 	row.text:SetText(name)
-	row.right:SetText(got .. "/" .. need)
+	row.right:SetText(got .. "/" .. need + got)
 
 	row.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 	row.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
@@ -307,7 +307,7 @@ function quest_proto:AddObjective(qid, name, got, need)
 
 	row.name = name
 	row.got = got
-	row.need = need
+	self.need = need
 	row.id = self.objectivesCount
 	row.type = "objective"
 	row.qid = qid
