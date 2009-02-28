@@ -83,6 +83,7 @@ function fux:OnEnable()
 
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "Init")
+	self:RegisterEvent("UNIT_LEVEL")
 end
 
 function fux:Purge(tid)
@@ -238,4 +239,16 @@ function fux:Reposition()
 
 	self.frame:SetHeight(height)
 	self.frame:SetWidth(width)
+end
+
+function fux:UNIT_LEVEL(unit)
+	if unit ~= "player" then return end
+
+	for id, zone in ipairs(self.zones) do
+		for qid, quest in ipairs(zone.quests) do
+			local col = GetDifficultyColor(quest.level)
+			quest.name:SetTextColor(col.r * self.fade, col.g * self.fade, col.b * self.fade)
+			quest.right:SetTextColor(col. r * self.fade, col.g * self.fade, col.b * self.fade)
+		end
+	end
 end

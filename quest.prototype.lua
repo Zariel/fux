@@ -2,6 +2,7 @@ local fux = LibStub("AceAddon-3.0"):GetAddon("Fux")
 local Q = LibStub("LibQuixote-2.0")
 
 local fade = 0.7
+fux.fade = fade
 
 local zone_proto = CreateFrame("Frame")
 local quest_proto = CreateFrame("Frame")
