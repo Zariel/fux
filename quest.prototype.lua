@@ -192,7 +192,7 @@ function zone_proto:ShowAll()
 end
 
 -- Quest Creation
-function zone_proto:AddQuest(uid, name, level, status)
+function zone_proto:AddQuest(uid, name, level, tag, status)
 	if self.questsByName[name]then
 		if status then
 			self.questsByName[name].right:SetText(status)
@@ -205,7 +205,7 @@ function zone_proto:AddQuest(uid, name, level, status)
 	local row = newRow()
 	setmetatable(row, {__index = quest_proto})
 
-	row.text:SetText(string.format("[%d] %s", level, name))
+	row.text:SetText(string.format("[%s] %s", tag and level .. tag or level, name))
 
 	row.name = name
 	row.level = level

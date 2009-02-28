@@ -1,6 +1,16 @@
 local fux = LibStub("AceAddon-3.0"):NewAddon("Fux", "AceEvent-3.0")
 local Q = LibStub("LibQuixote-2.0")
 
+local tags = {
+	Dungeon = "d",
+	Elite = "+",
+	Daily = "*",
+	Pvp = "p",
+	Raid = "r",
+	Heroic = "d+",
+	Group = "g",
+}
+
 function fux:OnInitialize()
 	_G.Fuxdb = _G.Fuxdb or {
 			x = 0,
@@ -127,7 +137,7 @@ function fux:QuestUpdate()
 		zone.tid = id
 
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
-			local quest = zone:AddQuest(uid, title, level, complete and "(done)")
+			local quest = zone:AddQuest(uid, title, level, tag and tags[tag], complete and "(done)")
 			quest.tid = id
 			quest.got, quest.need = 0, 0
 			if objectives and objectives > 0 and not complete then
