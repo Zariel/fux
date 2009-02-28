@@ -136,7 +136,16 @@ function fux:NewZone(name)
 	row.questsByName = {}
 	row.questCount = 0
 
-	table.insert(self.zones, row)
+	local pos = 1
+	for i, z in ipairs(self.zones) do
+		pos = i + 1
+		if z.name > name then
+			pos = i
+			break
+		end
+	end
+
+	table.insert(self.zones, pos, row)
 	self.zonesByName[name] = row
 
 	return row
@@ -231,6 +240,9 @@ function zone_proto:AddQuest(uid, name, level, status)
 		if level < q.level then
 			pos = i
 			break
+		elseif level == q.level and name < q.name then
+			pos = i
+			break
 		end
 	end
 
@@ -313,7 +325,16 @@ function quest_proto:AddObjective(qid, name, got, need)
 	row.type = "objective"
 	row.qid = qid
 
-	table.insert(self.objectives, row)
+	local pos = 1
+	for i, o in ipairs(self.objectives) do
+		pos = i + 1
+		if name < o.name then
+			pos = i
+			break
+		end
+	end
+
+	table.insert(self.objectives, pos, row)
 	self.objectivesByName[name] = row
 
 	return row

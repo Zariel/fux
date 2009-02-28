@@ -159,6 +159,7 @@ function fux:Reposition()
 		height = height + 16
 		width = math.max(math.max(math.floor(zone.text:GetStringWidth()), 150), width)
 		zone:SetWidth(width - 5)
+		zone:SetPoint("RIGHT", self.frame, - 5)
 
 		if id == 1 then
 			zone:ClearAllPoints()
