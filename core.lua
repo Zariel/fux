@@ -202,7 +202,7 @@ function fux:Reposition()
 						width = math.max(width, l)
 
 						obj:SetWidth(width - 40)
-						obj.right:SetPoint("RIGHT", self.frame, - 10, 0)
+						obj.right:SetPoint("RIGHT", self.frame, - 10, - 1)
 						obj:ClearAllPoints()
 
 						if oid == 1 then
