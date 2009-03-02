@@ -138,13 +138,16 @@ function fux:QuestUpdate()
 		zone.tid = id
 
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
-			local quest = zone:AddQuest(uid, title, level, tag and tags[tag], complete and "(done)")
+			if complete then
+				complete = complete > 0 and "(done)" or complete < 0 and "(failed)" or nil
+			end
+			local quest = zone:AddQuest(uid, title, level, tag and tags[tag], complete)
 			quest.tid = id
 			quest.got, quest.need = 0, 0
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
-					quest.got = quest.got + got
-					quest.need = quest.need + need
+					quest.got = quest.got + (got or 0)
+					quest.need = quest.need + (need or 0)
 					if got ~= need then
 						local obj = quest:AddObjective(uid, name, got, need)
 						obj.tid = id
@@ -170,12 +173,13 @@ function fux:Reposition()
 		height = height + 16
 		width = math.max(math.max(math.floor(zone.text:GetStringWidth()), 150), width)
 		--zone:SetWidth(width - 5)
-		zone:SetPoint("RIGHT", self.frame, - 5)
 
 		if id == 1 then
 			zone:ClearAllPoints()
-			zone:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 5, - 20)
+			zone:SetPoint("TOPLEFT", self.frame.title, "BOTTOMLEFT", 5, -1)
 		end
+
+		zone:SetPoint("RIGHT", self.frame, "RIGHT")
 
 		local last = zone
 		if zone.visible then
@@ -186,7 +190,6 @@ function fux:Reposition()
 				local l = math.max(math.floor(quest.text:GetStringWidth()) + 15, 150) + math.floor(quest.right:GetStringWidth()) + 30
 				width = math.max(width, l)
 
-				--quest:SetWidth(width - 30)
 				quest:ClearAllPoints()
 				quest:SetPoint("RIGHT", self.frame, - 10, 0)
 
@@ -209,22 +212,21 @@ function fux:Reposition()
 					for oid, obj in ipairs(quest.objectives) do
 						last = obj
 
-						height = height + 13
+						height = height + 12
 						local l = math.max(math.floor(obj.text:GetStringWidth()) + 40, 150) + math.floor(obj.right:GetStringWidth()) + 40
 						width = math.max(width, l)
 
-						--obj:SetWidth(width - 40)
 						obj:ClearAllPoints()
 
 						if oid == 1 then
 							obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
 						else
 							local prev = quest.objectives[oid - 1]
-							obj:SetPoint("TOP", prev, "BOTTOM", 0, - 2)
+							obj:SetPoint("TOP", prev, "BOTTOM", 0, 0)
 						end
 
 						obj:SetPoint("LEFT", self.frame, "LEFT", 20, 0)
-						obj:SetPoint("RIGHT", self.frame, - 10, - 1)
+						obj:SetPoint("RIGHT", self.frame, - 10, 0)
 					end
 				end
 			end
