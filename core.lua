@@ -1,5 +1,13 @@
-local fux = LibStub("AceAddon-3.0"):NewAddon("Fux", "AceEvent-3.0")
 local Q = LibStub("LibQuixote-2.0")
+
+fux = {}
+fux.events = CreateFrame("Frame")
+
+fux.events:SetScript("OnEvent", function(self, event, ...)
+	fux[event](fux, ...)
+end)
+
+fux.events:RegisterEvent("ADDON_LOADED")
 
 local tags = {
 	Dungeon = "d",
@@ -11,7 +19,9 @@ local tags = {
 	Group = "g",
 }
 
-function fux:OnInitialize()
+function fux:ADDON_LOADED(addon)
+	if addon ~= "Fux" then return end
+
 	_G.Fuxdb = _G.Fuxdb or {
 			x = 0,
 			y = 500,
@@ -65,6 +75,9 @@ function fux:OnInitialize()
 	f.title = t
 
 	self.frame = f
+
+	self.events:UnregisterEvent("ADDON_LOADED")
+	self:OnEnable()
 end
 
 function fux:OnEnable()
@@ -82,8 +95,9 @@ function fux:OnEnable()
 	self.objIndent = 10
 
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
-	self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "Init")
-	self:RegisterEvent("UNIT_LEVEL")
+	self.events:RegisterEvent("ZONE_CHANGED_NEW_AREA", "Init")
+	self.ZONE_CHANGED_NEW_AREA = self.Init
+	self.events:RegisterEvent("UNIT_LEVEL")
 end
 
 function fux:Purge(tid)
