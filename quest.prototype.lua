@@ -41,6 +41,8 @@ do
 	end
 end
 
+local tip = GameTooltip
+
 -- Zone Script Handlers
 local zoneOnClick = function(self, button)
 	if button == "LeftButton" then
@@ -83,12 +85,19 @@ local questOnEnter = function(self)
 	local col = GetDifficultyColor(self.level)
 	self.text:SetTextColor(col.r, col.g, col.b)
 	self.right:SetTextColor(col.r, col.g, col.b)
+
+	tip:SetOwner(fux.frame, "ANCHOR_NONE")
+	tip:SetPoint("TOPLEFT", fux.frame, "TOPRIGHT")
+	tip:AddLine(select(2, Q:GetQuestText(self.uid)), 0.8, 0.8, 0.8, true)
+	tip:Show()
 end
 
 local questOnLeave = function(self)
 	local col = GetDifficultyColor(self.level)
 	self.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
 	self.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+
+	tip:Hide()
 end
 
 -- Objective Script Handlers
