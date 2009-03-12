@@ -255,3 +255,14 @@ function fux:UNIT_LEVEL(unit)
 		end
 	end
 end
+
+
+function SlashCmdList.FUX()
+	if fux.frame:IsShown() then
+		fux.frame:Hide()
+	else
+		fux.frame:Show()
+	end
+end
+
+SLASH_FUX1 = "/fux"
