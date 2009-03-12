@@ -2,7 +2,7 @@
 ## Title: Lib: Quixote-2.0
 ## Notes: Quest information
 ## Author: Kemayo
-## Version: 2.0
+## Version: 3.0.8-1
 ## X-Category: Library
 ## OptionalDeps: LibStub, CallbackHandler-1.0
 ## X-License: LGPL v2.1
