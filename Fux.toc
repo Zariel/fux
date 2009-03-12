@@ -2,7 +2,7 @@
 ## Interface: 30000
 ## Version: 3.0.9-8
 ## Author: Zariel
-## OptionalDeps: Ace3, LibQuixote-2.0
+## OptionalDeps: LibQuixote-2.0
 ## SavedVariables: Fuxdb
 
 embeds.xml
