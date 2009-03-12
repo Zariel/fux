@@ -132,6 +132,12 @@ function fux:QuestUpdate()
 	local q = Q:GetNumQuests()
 	self.frame.title:SetText("Fux - " .. q .. "/25")
 
+	if q == 0 then
+		return self.frame:Hide()
+	else
+		self.frame:Show()
+	end
+
 	local id = GetTime()
 	for _, z, n in Q:IterateZones() do
 		local zone = self:NewZone(z)
