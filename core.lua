@@ -19,16 +19,38 @@ local tags = {
 	Group = "g",
 }
 
+function fux:InitDB()
+	local name, realm = UnitName("player"), GetRealmName()
+
+	local data = {
+		x = 0,
+		y = 500,
+	}
+
+	local db = _G.Fuxdb
+	if not db then
+		db = { [realm] = { [name] = data } }
+	end
+
+	if db[realm] then
+		if not db[realm][name] then
+			db[realm][name] = data
+		end
+	else
+		db[realm] = { [name] = data }
+	end
+
+	_G.Fuxdb = db
+	self.db = _G.Fuxdb[realm][name]
+	_G.Fuxdb[realm][name] = self.db
+
+	return true
+end
+
 function fux:ADDON_LOADED(addon)
 	if addon ~= "Fux" then return end
 
-	_G.Fuxdb = _G.Fuxdb or {
-			x = 0,
-			y = 500,
-		}
-
-	self.db = _G.Fuxdb
-	_G.Fuxdb = self.db
+	self:InitDB()
 
 	local f = CreateFrame("Frame", nil, UIParent)
 	f:SetHeight(425)
@@ -53,7 +75,7 @@ function fux:ADDON_LOADED(addon)
 	end)
 
 	f:SetScript("OnMouseUp", function(self, button)
-		local x,y = self:GetLeft(), self:GetTop()
+		local x, y = self:GetLeft(), self:GetTop()
 		fux.db.x = x
 		fux.db.y = y
 
