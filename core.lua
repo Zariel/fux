@@ -25,24 +25,14 @@ function fux:InitDB()
 	local data = {
 		x = 0,
 		y = 500,
+		visible = true,
 	}
 
-	local db = _G.Fuxdb
-	if not db then
-		db = { [realm] = { [name] = data } }
-	end
+	_G.Fuxdb[realm] = _G.Fuxdb[realm] or {}
 
-	if db[realm] then
-		if not db[realm][name] then
-			db[realm][name] = data
-		end
-	else
-		db[realm] = { [name] = data }
-	end
+	_G.Fuxdb[realm][name] = setmetatable(_G.Fuxdb[realm][name] or {}, { __index = data} )
 
-	_G.Fuxdb = db
 	self.db = _G.Fuxdb[realm][name]
-	_G.Fuxdb[realm][name] = self.db
 
 	return true
 end
@@ -67,6 +57,10 @@ function fux:ADDON_LOADED(addon)
 	f:EnableMouse(true)
 	f:SetMovable(true)
 
+	f:SetScript("OnShow", function(self)
+		fux:QuestUpdate()
+	end)
+
 	f:SetScript("OnMouseDown", function(self, button)
 		if button == "LeftButton" and IsAltKeyDown() then
 			self:ClearAllPoints()
@@ -84,7 +78,11 @@ function fux:ADDON_LOADED(addon)
 		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 	end)
 
-	f:Show()
+	if self.db.visible then
+		f:Show()
+	else
+		f:Hide()
+	end
 
 	local t = f:CreateFontString(nil, "OVERLAY")
 	t:SetPoint("TOP", f, "TOP", 0, -3)
@@ -165,6 +163,8 @@ function fux:Init()
 end
 
 function fux:QuestUpdate()
+	if not self.db.visible then return end
+
 	local q = Q:GetNumQuests()
 	self.frame.title:SetText("Fux - " .. q .. "/25")
 
@@ -301,8 +301,10 @@ end
 
 function SlashCmdList.FUX()
 	if fux.frame:IsShown() then
+		fux.db.visible = false
 		fux.frame:Hide()
 	else
+		fux.db.visible = true
 		fux.frame:Show()
 	end
 end
