@@ -28,8 +28,8 @@ function fux:InitDB()
 		visible = true,
 	}
 
+	_G.Fuxdb = _G.Fuxdb or {}
 	_G.Fuxdb[realm] = _G.Fuxdb[realm] or {}
-
 	_G.Fuxdb[realm][name] = setmetatable(_G.Fuxdb[realm][name] or {}, { __index = data} )
 
 	self.db = _G.Fuxdb[realm][name]
