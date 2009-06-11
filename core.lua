@@ -101,6 +101,7 @@ function fux:ADDON_LOADED(addon)
 end
 
 function fux:OnEnable()
+	--[[
 	local q = _G.WatchFrameLines
 
 	q:Hide()
@@ -110,6 +111,7 @@ function fux:OnEnable()
 	q.Show = condom
 	q.RegisterEvent = condom
 	QuestFrameItems_Update = condom
+	]]
 
 	self.zones = {}
 	self.zonesByName = {}
