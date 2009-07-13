@@ -4,10 +4,6 @@ local Q = LibStub("LibQuixote-2.0")
 local fade = 0.7
 fux.fade = fade
 
-local zone_proto = CreateFrame("Frame")
-local quest_proto = CreateFrame("Frame")
-local objective_proto = CreateFrame("Frame")
-
 local newRow, delRow
 do
 	local row_cache = {}
@@ -42,6 +38,10 @@ do
 end
 
 local tip = GameTooltip
+
+local zone_proto = CreateFrame("Frame")
+local quest_proto = CreateFrame("Frame")
+local objective_proto = CreateFrame("Frame")
 
 -- Zone Script Handlers
 local zoneOnClick = function(self, button)
@@ -172,16 +172,16 @@ function zone_proto:Remove(qid, quest)
 end
 
 function zone_proto:RemoveAll()
-	for qid, quest in ipairs(self.quests) do
+	for qid, quest in pairs(self.quests) do
 		self:Remove(qid, quest)
 	end
 end
 
 function zone_proto:HideAll()
 	self.text:SetText("+" .. self.name)
-	for qid, q in ipairs(self.quests) do
+	for qid, q in pairs(self.quests) do
 		q:Hide()
-		for oid, o in ipairs(q.objectives) do
+		for oid, o in pairs(q.objectives) do
 			o:Hide()
 		end
 	end
@@ -190,9 +190,9 @@ end
 
 function zone_proto:ShowAll()
 	self.text:SetText("-" .. self.name)
-	for qid, q in ipairs(self.quests) do
+	for qid, q in pairs(self.quests) do
 		q:Show()
-		for oid, o in ipairs(q.objectives) do
+		for oid, o in pairs(q.objectives) do
 			if q.visible then
 				o:Show()
 			end
@@ -245,7 +245,7 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 	row.objectivesCount = 0
 
 	local pos = 1
-	for i, q in ipairs(self.quests) do
+	for i, q in pairs(self.quests) do
 		pos = i + 1
 		if level < q.level then
 			pos = i
@@ -264,7 +264,7 @@ end
 
 -- Quest public functions
 function quest_proto:HideAll()
-	for oid, o in ipairs(self.objectives) do
+	for oid, o in pairs(self.objectives) do
 		o:Hide()
 	end
 	if self.need > 0 then
@@ -277,7 +277,7 @@ function quest_proto:ShowAll()
 	if self.status ~= "(done)" then
 		self.right:SetText("")
 	end
-	for oid, o in ipairs(self.objectives) do
+	for oid, o in pairs(self.objectives) do
 		o:Show()
 	end
 	self.visible = true
@@ -291,7 +291,7 @@ function quest_proto:Remove(oid, obj)
 end
 
 function quest_proto:RemoveAll()
-	for oid, obj in ipairs(self.objectives) do
+	for oid, obj in pairs(self.objectives) do
 		self:Remove(oid, obj)
 	end
 end

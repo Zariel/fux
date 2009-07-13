@@ -114,7 +114,7 @@ function fux:OnEnable()
 	self.objIndent = 10
 
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
-	self.events:RegisterEvent("ZONE_CHANGED_NEW_AREA", "Init")
+	self.events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	self.ZONE_CHANGED_NEW_AREA = self.Init
 	self.events:RegisterEvent("UNIT_LEVEL")
 end
@@ -146,13 +146,12 @@ function fux:Purge(tid)
 end
 
 function fux:Init()
-	local current = GetRealZoneText()
-
-	for id, zone in ipairs(self.zones) do
-		if zone.name ~= current then
-			zone:HideAll()
-		else
+	local sub, cur = GetMinimapZoneText(), GetRealZoneText()
+	for id, zone in pairs(self.zones) do
+		if zone.name == sub or zone.name == cur then
 			zone:ShowAll()
+		else
+			zone:HideAll()
 		end
 	end
 
