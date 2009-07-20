@@ -4,10 +4,14 @@ local Q = LibStub("LibQuixote-2.0")
 local fade = 0.7
 fux.fade = fade
 
+local zone_proto = CreateFrame("Frame")
+local quest_proto = CreateFrame("Frame")
+local objective_proto = CreateFrame("Frame")
+
 local newRow, delRow
 do
 	local row_cache = {}
-	newRow = function(height)
+	newRow = function(parent, height)
 		height = height or 12
 		local row = next(row_cache)
 		if row then
@@ -33,15 +37,11 @@ do
 			row.right = level
 		end
 
-		return row
+		return setmetatable(row, { __index = parent })
 	end
 end
 
 local tip = GameTooltip
-
-local zone_proto = CreateFrame("Frame")
-local quest_proto = CreateFrame("Frame")
-local objective_proto = CreateFrame("Frame")
 
 -- Zone Script Handlers
 local zoneOnClick = function(self, button)
@@ -82,22 +82,52 @@ local questOnClick = function(self, button)
 end
 
 local questOnEnter = function(self)
-	local col = GetDifficultyColor(self.level)
-	self.text:SetTextColor(col.r, col.g, col.b)
-	self.right:SetTextColor(col.r, col.g, col.b)
+	local r, g, b
+	if self.daily then
+		r, g, b = 62/255, 174/255, 1
+	else
+		local col = GetDifficultyColor(self.level)
+		r, g, b = col.r, col.g, col.b
+	end
+
+	self.text:SetTextColor(r, g, b)
+	self.right:SetTextColor(r, g, b)
 
 	tip:SetOwner(fux.frame, "ANCHOR_NONE")
 	tip:SetPoint("TOPLEFT", fux.frame, "TOPRIGHT")
+
+	tip:ClearLines()
+	tip:AddDoubleLine(self.name, self.status and self.status or self.need > 0 and self.got .. "/" .. self.need, r, g, b, r, g, b)
+
 	tip:AddLine(select(2, Q:GetQuestText(self.uid)), 0.8, 0.8, 0.8, true)
+	if #self.objectives > 0 then
+		tip:AddLine("")
+
+		for oid, obj in ipairs(self.objectives) do
+			tip:AddDoubleLine(obj.name, obj.need > 0 and obj.got .. "/" .. obj.need, r, g, b, r, g, b)
+		end
+	end
+
+	tip:SetBackdropColor(0, 0, 0, 0.8)
+
 	tip:Show()
 end
 
 local questOnLeave = function(self)
-	local col = GetDifficultyColor(self.level)
-	self.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
-	self.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+	local r, g, b
+	if self.daily then
+		r, g, b = 62/255, 174/255, 1
+	else
+		local col = GetDifficultyColor(self.level)
+		r, g, b = col.r, col.g, col.b
+	end
 
-	tip:Hide()
+	self.text:SetTextColor(r * fade, g * fade, b * fade)
+	self.right:SetTextColor(r * fade, g * fade, b * fade)
+
+	if tip:IsOwned(fux.frame) then
+		tip:Hide()
+	end
 end
 
 -- Objective Script Handlers
@@ -125,14 +155,12 @@ function fux:NewZone(name)
 
 	fux.zoneCount = fux.zoneCount + 1
 
-	local row = newRow(14)
+	local row = newRow(zone_proto, 14)
 
 	row:EnableMouse()
 	row:SetScript("OnMouseUp", zoneOnClick)
 	row:SetScript("OnEnter", zoneOnEnter)
 	row:SetScript("OnLeave", zoneOnLeave)
-
-	setmetatable(row, {__index = zone_proto})
 
 	row.text:SetText("-" .. name)
 	row.text:SetTextColor(fade, fade, fade)
@@ -212,8 +240,7 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 
 	self.questCount = self.questCount + 1
 
-	local row = newRow()
-	setmetatable(row, {__index = quest_proto})
+	local row = newRow(quest_proto)
 
 	row.text:SetText(string.format("[%s] %s", tag and level .. tag or level, name))
 
@@ -222,15 +249,23 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 	row.type = "quest"
 	row.status = status
 	row.visible = true
+	row.daily = tag == "*"
 
 	row:EnableMouse(true)
 	row:SetScript("OnEnter", questOnEnter)
 	row:SetScript("OnLeave", questOnLeave)
 	row:SetScript("OnMouseUp", questOnClick)
 
-	local col = GetDifficultyColor(level)
-	row.text:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
-	row.right:SetTextColor(col.r * fade, col.g * fade, col.b * fade)
+	local r, g, b
+	if row.daily then
+		r, g, b = 62/255, 174/255, 1
+	else
+		local col = GetDifficultyColor(level)
+		r, g, b = col.r, col.g, col.b
+	end
+
+	row.text:SetTextColor(r * fade, g * fade, b * fade)
+	row.right:SetTextColor(r * fade, g * fade, b * fade)
 
 	if status then
 		row.status = status
@@ -313,8 +348,7 @@ function quest_proto:AddObjective(qid, name, got, need)
 
 	self.objectivesCount = self.objectivesCount + 1
 
-	local row = newRow()
-	setmetatable(row, { __index = objective_proto })
+	local row = newRow(objective_proto)
 
 	row.text:SetText(name)
 	row.right:SetText(got .. "/" .. need)

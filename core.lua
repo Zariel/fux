@@ -1,4 +1,6 @@
 local Q = LibStub("LibQuixote-2.0")
+local pairs = pairs
+local ipairs = ipairs
 
 fux = {}
 fux.events = CreateFrame("Frame")
@@ -120,9 +122,9 @@ function fux:OnEnable()
 end
 
 function fux:Purge(tid)
-	for id, zone in ipairs(self.zones) do
-		for qid, quest in ipairs(zone.quests) do
-			for oid, obj in ipairs(quest.objectives) do
+	for id, zone in pairs(self.zones) do
+		for qid, quest in pairs(zone.quests) do
+			for oid, obj in pairs(quest.objectives) do
 				if obj.tid ~= tid then
 					quest:Remove(oid, obj)
 				end
@@ -164,7 +166,6 @@ function fux:QuestUpdate()
 	if not self.db.visible then return end
 
 	local q = Q:GetNumQuests()
-	self.frame.title:SetText("Fux - " .. q .. "/25")
 
 	if q == 0 then
 		return self.frame:Hide()
@@ -172,30 +173,55 @@ function fux:QuestUpdate()
 		self.frame:Show()
 	end
 
+	local completed = 0
 	local id = GetTime()
+	local zone, quest, obj
 	for _, z, n in Q:IterateZones() do
-		local zone = self:NewZone(z)
+		zone = self:NewZone(z)
 		zone.tid = id
 
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
 			if complete then
-				complete = complete > 0 and "(done)" or complete < 0 and "(failed)" or nil
+				if complete > 0 then
+					complete = "(done)"
+					completed = completed + 1
+				elseif complete < 0 then
+					complete = "(failed)"
+				else
+					complete = nil
+				end
 			end
-			local quest = zone:AddQuest(uid, title, level, tag and tags[tag], complete)
+
+			quest = zone:AddQuest(uid, title, level, tag and tags[tag], complete)
 			quest.tid = id
 			quest.got, quest.need = 0, 0
+
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
 					quest.got = quest.got + (tonumber(got) or 0)
 					quest.need = quest.need + (tonumber(need) or 0)
+
 					if got ~= need then
-						local obj = quest:AddObjective(uid, name, got, need)
+						obj = quest:AddObjective(uid, name, got, need)
 						obj.tid = id
 					end
 				end
+				--table.sort(quest.objectives, function(a, b) return a.name < b.name end)
 			end
 		end
+		--table.sort(zone.quests, function(a, b) return a.level < b.level end)
 	end
+
+	--table.sort(self.zones, function(a, b) return a.name < b.name end)
+
+	local str = completed .. "/" .. q
+
+	local d = GetDailyQuestsCompleted()
+	if d > 0 then
+		str = str .. " - (" .. d .. "/25)"
+	end
+
+	self.frame.title:SetText(str)
 
 	if not self.init then
 		self:Init()
@@ -273,7 +299,7 @@ function fux:Reposition()
 		end
 
 		local next = self.zones[id + 1]
-		if next then
+		if next and last then
 			next:ClearAllPoints()
 			next:SetPoint("TOP", last, "BOTTOM", 0, - 2)
 			next:SetPoint("LEFT", self.frame, "LEFT", 5, 0)
