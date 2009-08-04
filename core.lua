@@ -121,7 +121,7 @@ function fux:OnEnable()
 	Q.RegisterCallback(self, "Quest_Abandoned", "QuestAbandoned")
 	Q.RegisterCallback(self, "Quest_Gained", "QuestGained")
 	Q.RegisterCallback(self, "Objective_Update", "ObjectiveUpdate")
-	Q.RegisterCallback(self, "Quest_Compelete", "QuestComplete")
+	Q.RegisterCallback(self, "Quest_Complete", "QuestComplete")
 	Q.RegisterCallback(self, "Quest_Failed", "QuestFailed")
 	Q.RegisterCallback(self, "Quest_Lost", "QuestAbandoned")
 
@@ -138,8 +138,8 @@ function fux:GetZone(uid)
 	return
 end
 
-function fux:QuestAbandoned(event, name, uid)
-	local zone = self:GetZone(uid)
+function fux:QuestAbandoned(event, name, uid, zone)
+	zone = zone or self:GetZone(uid)
 
 	if not zone or not self.zonesByName[zone] then return end
 
@@ -186,7 +186,6 @@ end
 
 function fux:QuestComplete(event, name, uid)
 	local zone = self:GetZone(uid)
-
 	if not zone or not self.zonesByName[zone] then return end
 
 	zone = self.zonesByName[zone]
@@ -194,7 +193,7 @@ function fux:QuestComplete(event, name, uid)
 end
 
 -- Still causes a full obj update
-function fux:ObjectiveUpdate(event, title, uid)
+function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
 	local zone = self:GetZone(uid)
 
 	zone = self:NewZone(zone)
@@ -202,47 +201,18 @@ function fux:ObjectiveUpdate(event, title, uid)
 	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
-	local obj
-	for name, got, need in Q:IterateObjectivesForQuest(uid) do
-		quest.got = quest.got + (tonumber(got) or 0)
-		quest.need = quest.need + (tonumber(need) or 0)
+	quest.got = quest.got + (tonumber(got) or 0)
+	quest.need = quest.need + (tonumber(need) or 0)
 
-		if got ~= need then
-			obj = quest:AddObjective(uid, name, got, need)
-		else
-			quest:Remove(nil, name)
-		end
+	if got ~= need then
+		quest:AddObjective(uid, desc, got, need)
+	else
+		quest:Remove(nil, desc)
 	end
 
 	if event then
 		self:Reposition()
 	end
-end
-
-function fux:Purge(tid)
-	for id, zone in pairs(self.zones) do
-		for qid, quest in pairs(zone.quests) do
-			for oid, obj in pairs(quest.objectives) do
-				if obj.tid ~= tid then
-					quest:Remove(oid, obj)
-				end
-			end
-
-			if quest.tid ~= tid then
-				zone:Remove(qid, quest)
-			end
-		end
-
-		-- TODO: Later cache these
-		if zone.tid ~= tid then
-			zone:Hide()
-			table.remove(self.zones, id)
-			self.zonesByName[zone.name] = nil
-			self.zoneCount = self.zoneCount - 1
-		end
-	end
-
-	self:Reposition()
 end
 
 function fux:Init()
@@ -259,78 +229,6 @@ function fux:Init()
 
 	self.init = true
 end
-
---[=[
-function fux:QuestUpdate()
-	if not self.db.visible then return end
-
-	local q = Q:GetNumQuests()
-
-	Q.UnregisterCallback(self, "Update")
-
-	--[[
-	if q == 0 then
-		return self.frame:Hide()
-	else
-		self.frame:Show()
-	end]]
-
-	local completed = 0
-	local id = GetTime()
-	local zone, quest, obj
-	for _, z, n in Q:IterateZones() do
-		zone = self:NewZone(z)
-		zone.tid = id
-
-		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
-			if complete then
-				if complete > 0 then
-					complete = "(done)"
-					completed = completed + 1
-				elseif complete < 0 then
-					complete = "(failed)"
-				else
-					complete = nil
-				end
-			end
-
-			quest = zone:AddQuest(uid, title, level, tag and tags[tag], complete)
-			quest.tid = id
-			quest.got, quest.need = 0, 0
-
-			if objectives and objectives > 0 and not complete then
-				for name, got, need in Q:IterateObjectivesForQuest(uid) do
-					quest.got = quest.got + (tonumber(got) or 0)
-					quest.need = quest.need + (tonumber(need) or 0)
-
-					if got ~= need then
-						obj = quest:AddObjective(uid, name, got, need)
-						obj.tid = id
-					end
-				end
-				--table.sort(quest.objectives, function(a, b) return a.name < b.name end)
-			end
-		end
-		--table.sort(zone.quests, function(a, b) return a.level < b.level end)
-	end
-
-	--table.sort(self.zones, function(a, b) return a.name < b.name end)
-
-	local str = completed .. "/" .. q
-
-	local d = GetDailyQuestsCompleted()
-	if d > 0 then
-		str = str .. " - (" .. d .. "/25)"
-	end
-
-	self.frame.title:SetText(str)
-
-	if not self.init then
-		self:Init()
-	end
-
-	self:Purge(id)
-end]=]
 
 function fux:QuestUpdate()
 	Q.UnregisterCallback(self, "Update")
@@ -351,7 +249,9 @@ function fux:QuestUpdate()
 			end
 
 			if objectives and objectives > 0 and not complete then
-				fux:ObjectiveUpdate(nil, title, uid)
+				for name, got, need in Q:IterateObjectivesForQuest(uid) do
+					fux:ObjectiveUpdate(nil, title, uid, name, nil, got, need)
+				end
 			end
 		end
 	end
