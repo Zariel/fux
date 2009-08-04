@@ -86,7 +86,7 @@ local questOnEnter = function(self)
 	if self.daily then
 		r, g, b = 62/255, 174/255, 1
 	else
-		local col = GetDifficultyColor(self.level)
+		local col = GetQuestDifficultyColor(self.level)
 		r, g, b = col.r, col.g, col.b
 	end
 
@@ -118,7 +118,7 @@ local questOnLeave = function(self)
 	if self.daily then
 		r, g, b = 62/255, 174/255, 1
 	else
-		local col = GetDifficultyColor(self.level)
+		local col = GetQuestDifficultyColor(self.level)
 		r, g, b = col.r, col.g, col.b
 	end
 
@@ -304,7 +304,7 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 	if row.daily then
 		r, g, b = 62/255, 174/255, 1
 	else
-		local col = GetDifficultyColor(level)
+		local col = GetQuestDifficultyColor(level)
 		r, g, b = col.r, col.g, col.b
 	end
 

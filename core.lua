@@ -348,7 +348,7 @@ function fux:UNIT_LEVEL(unit)
 
 	for id, zone in ipairs(self.zones) do
 		for qid, quest in ipairs(zone.quests) do
-			local col = GetDifficultyColor(quest.level)
+			local col = GetQuestDifficultyColor(quest.level)
 			quest.text:SetTextColor(col.r * self.fade, col.g * self.fade, col.b * self.fade)
 			quest.right:SetTextColor(col. r * self.fade, col.g * self.fade, col.b * self.fade)
 		end
