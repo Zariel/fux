@@ -99,6 +99,8 @@ function fux:ADDON_LOADED(addon)
 	self.frame = f
 
 	self.events:UnregisterEvent("ADDON_LOADED")
+	self.ADDON_LOADED = nil
+
 	self:OnEnable()
 end
 
@@ -116,9 +118,105 @@ function fux:OnEnable()
 	self.objIndent = 10
 
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
+	Q.RegisterCallback(self, "Quest_Abandoned", "QuestAbandoned")
+	Q.RegisterCallback(self, "Quest_Gained", "QuestGained")
+	Q.RegisterCallback(self, "Objective_Update", "ObjectiveUpdate")
+	Q.RegisterCallback(self, "Quest_Compelete", "QuestComplete")
+	Q.RegisterCallback(self, "Quest_Failed", "QuestFailed")
+	Q.RegisterCallback(self, "Quest_Lost", "QuestAbandoned")
+
 	self.events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	self.ZONE_CHANGED_NEW_AREA = self.Init
 	self.events:RegisterEvent("UNIT_LEVEL")
+end
+
+function fux:GetZone(uid)
+	if Q:GetQuestByUid(uid) then
+		return select(10, Q:GetQuestByUid(uid))
+	end
+
+	return
+end
+
+function fux:QuestAbandoned(event, name, uid)
+	local zone = self:GetZone(uid)
+
+	if not zone or not self.zonesByName[zone] then return end
+
+	zone = self.zonesByName[zone]
+
+	local dirty = false
+	-- Do we still have it?
+	if zone.questsByName[name] then
+		zone:Remove(nil, name)
+		dirty = true
+	end
+
+	if #zone.quests == 0 then
+		self:RemoveZone(nil, zone)
+		dirty = true
+	end
+
+	if dirty then
+		self:Reposition()
+	end
+end
+
+function fux:QuestGained(event, title, uid, obj, zone)
+	zone = self:NewZone(zone)
+
+	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
+
+	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
+	self:ObjectiveUpdate(event, title, uid)
+
+	if event then
+		self:Reposition()
+	end
+end
+
+function fux:QuestFailed(event, name, uid)
+	local zone = self:GetZone(uid)
+
+	if not zone or not self.zonesByName[zone] then return end
+
+	zone = self.zonesByName[zone]
+	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
+end
+
+function fux:QuestComplete(event, name, uid)
+	local zone = self:GetZone(uid)
+
+	if not zone or not self.zonesByName[zone] then return end
+
+	zone = self.zonesByName[zone]
+	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
+end
+
+-- Still causes a full obj update
+function fux:ObjectiveUpdate(event, title, uid)
+	local zone = self:GetZone(uid)
+
+	zone = self:NewZone(zone)
+
+	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
+	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
+
+	local obj
+	for name, got, need in Q:IterateObjectivesForQuest(uid) do
+		quest.got = quest.got + (tonumber(got) or 0)
+		quest.need = quest.need + (tonumber(need) or 0)
+
+		if got ~= need then
+			obj = quest:AddObjective(uid, name, got, need)
+		else
+			quest:Remove(nil, name)
+		end
+	end
+
+	if event then
+		self:Reposition()
+	end
 end
 
 function fux:Purge(tid)
@@ -162,16 +260,20 @@ function fux:Init()
 	self.init = true
 end
 
+--[=[
 function fux:QuestUpdate()
 	if not self.db.visible then return end
 
 	local q = Q:GetNumQuests()
 
+	Q.UnregisterCallback(self, "Update")
+
+	--[[
 	if q == 0 then
 		return self.frame:Hide()
 	else
 		self.frame:Show()
-	end
+	end]]
 
 	local completed = 0
 	local id = GetTime()
@@ -228,6 +330,33 @@ function fux:QuestUpdate()
 	end
 
 	self:Purge(id)
+end]=]
+
+function fux:QuestUpdate()
+	Q.UnregisterCallback(self, "Update")
+	local q = Q:GetNumQuests()
+
+	local completed = 0
+	local zone, quest, obj
+	for _, z, n in Q:IterateZones() do
+		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
+			self:QuestGained(nil, title, uid, objectives, z)
+
+			if complete then
+				if complete > 0 then
+					self:QuestComplete(nil, title, uid)
+				elseif compelte < 0 then
+					self:QuestFailed(nil, title, uid)
+				end
+			end
+
+			if objectives and objectives > 0 and not complete then
+				fux:ObjectiveUpdate(nil, title, uid)
+			end
+		end
+	end
+
+	if not self.init then self:Init() end
 end
 
 -- MADNESS ENSUES

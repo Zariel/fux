@@ -189,11 +189,52 @@ function fux:NewZone(name)
 	return row
 end
 
+function fux:RemoveZone(id, zone)
+	if type(zone) == "string" then
+		zone = self.zonesByName[zone]
+	end
+
+
+	if not id and zone then
+		for k, v in pairs(self.zones) do
+			if v == zone then
+				id = k
+				break
+			end
+		end
+	end
+
+	if not(id and zone) then return end
+
+	zone:Hide()
+
+	table.remove(self.zones, id)
+	self.zonesByName[zone.name] = nil
+	self.zoneCount = self.zoneCount - 1
+end
+
+
 -- Zone Public functions
 function zone_proto:Remove(qid, quest)
-	quest:RemoveAll()
+	if type(quest) == "string" then
+		quest = self.questsByName[quest]
+	end
+
+	if not qid and quest then
+		for k, v in pairs(self.quests) do
+			if v == quest then
+				qid = k
+				break
+			end
+		end
+	end
+
+	if not(qid and quest) then return end
 
 	quest:Hide()
+
+	quest:RemoveAll()
+
 	table.remove(self.quests, qid)
 	self.questsByName[quest.name] = nil
 	self.questCount = self.questCount - 1
@@ -250,6 +291,9 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 	row.status = status
 	row.visible = true
 	row.daily = tag == "*"
+
+	row.got = 0
+	row.need = 0
 
 	row:EnableMouse(true)
 	row:SetScript("OnEnter", questOnEnter)
@@ -319,7 +363,23 @@ function quest_proto:ShowAll()
 end
 
 function quest_proto:Remove(oid, obj)
+	if type(obj) == "string" then
+		obj = self.objectivesByName[obj]
+	end
+
+	if not oid and obj then
+		for k, v in pairs(self.objectives) do
+			if v == obj then
+				oid = k
+				break
+			end
+		end
+	end
+
+	if not(obj and oid) then return end
+
 	obj:Hide()
+
 	table.remove(self.objectives, oid)
 	self.objectivesByName[obj.name] = nil
 	self.objectivesCount = self.objectivesCount - 1
