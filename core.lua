@@ -182,6 +182,8 @@ function fux:QuestFailed(event, name, uid)
 
 	zone = self.zonesByName[zone]
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
+
+	self:Reposition()
 end
 
 function fux:QuestComplete(event, name, uid)
@@ -190,6 +192,8 @@ function fux:QuestComplete(event, name, uid)
 
 	zone = self.zonesByName[zone]
 	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
+
+	self:Reposition()
 end
 
 -- Still causes a full obj update
