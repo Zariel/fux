@@ -237,7 +237,7 @@ function fux:Reposition()
 
 	for id, zone in ipairs(self.zones) do
 		height = height + 16
-		width = math.max(math.max(math.floor(zone.text:GetStringWidth()), 150), width)
+		width = math.max(math.max(math.floor(zone.text:GetStringWidth()) + 20, 150), width)
 		--zone:SetWidth(width - 5)
 
 		if id == 1 then
