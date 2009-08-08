@@ -168,7 +168,10 @@ function fux:QuestGained(event, title, uid, obj, zone)
 	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
 
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
-	self:ObjectiveUpdate(event, title, uid)
+
+	for obj, got, need in Q:IterateObjectivesForQuest(uid) do
+		self:ObjectiveUpdate(event, title, uid, obj, nil, got, need)
+	end
 
 	if event then
 		self:Reposition()
