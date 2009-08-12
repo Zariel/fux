@@ -1,4 +1,4 @@
-## Interface: 30000
+## Interface: 30200
 ## Title: Lib: Quixote-2.0
 ## Notes: Quest information
 ## Author: Kemayo
