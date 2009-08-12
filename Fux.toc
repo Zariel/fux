@@ -1,6 +1,6 @@
 ## Title: Fux
 ## Interface: 30200
-## Version: 3.2.0-20
+## Version: 3.2.0-21
 ## Author: Zariel
 ## OptionalDeps: LibQuixote-2.0
 ## SavedVariables: Fuxdb
