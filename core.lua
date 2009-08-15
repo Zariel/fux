@@ -138,6 +138,19 @@ function fux:GetZone(uid)
 	return
 end
 
+function fux:SetTitle()
+	local q, c = Q:GetNumQuests()
+
+	local str = c .. "/" .. q
+
+	local d = GetDailyQuestsCompleted()
+	if d > 0 then
+		str = str .. " - (" .. d .. "/25)"
+	end
+
+	self.frame.title:SetText(str)
+end
+
 function fux:QuestAbandoned(event, name, uid, zone)
 	zone = zone or self:GetZone(uid)
 
@@ -160,6 +173,8 @@ function fux:QuestAbandoned(event, name, uid, zone)
 	if dirty then
 		self:Reposition()
 	end
+
+	self:SetTitle()
 end
 
 function fux:QuestGained(event, title, uid, obj, zone)
@@ -176,6 +191,8 @@ function fux:QuestGained(event, title, uid, obj, zone)
 	if event then
 		self:Reposition()
 	end
+
+	self:SetTitle()
 end
 
 function fux:QuestFailed(event, name, uid)
@@ -187,6 +204,8 @@ function fux:QuestFailed(event, name, uid)
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
 
 	self:Reposition()
+
+	self:SetTitle()
 end
 
 function fux:QuestComplete(event, name, uid)
@@ -197,6 +216,8 @@ function fux:QuestComplete(event, name, uid)
 	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
 
 	self:Reposition()
+
+	self:SetTitle()
 end
 
 -- Still causes a full obj update
