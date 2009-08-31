@@ -184,8 +184,8 @@ function fux:QuestGained(event, title, uid, obj, zone)
 
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
-	for obj, got, need in Q:IterateObjectivesForQuest(uid) do
-		self:ObjectiveUpdate(event, title, uid, obj, nil, got, need)
+	for o, got, need in Q:IterateObjectivesForQuest(uid) do
+		self:ObjectiveUpdate(event, title, uid, o, nil, got, need)
 	end
 
 	if event then
@@ -229,10 +229,7 @@ function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
 	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
-	quest.got = quest.got + (tonumber(got) or 0)
-	quest.need = quest.need + (tonumber(need) or 0)
-
-	if got ~= need then
+	if got < need then
 		quest:AddObjective(uid, desc, got, need)
 	else
 		quest:Remove(nil, desc)
@@ -278,7 +275,7 @@ function fux:QuestUpdate()
 
 			if objectives and objectives > 0 and not complete then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
-					fux:ObjectiveUpdate(nil, title, uid, name, nil, got, need)
+					self:ObjectiveUpdate(nil, title, uid, name, nil, got, need)
 				end
 			end
 		end

@@ -96,8 +96,14 @@ local questOnEnter = function(self)
 	tip:SetOwner(fux.frame, "ANCHOR_NONE")
 	tip:SetPoint("TOPLEFT", fux.frame, "TOPRIGHT")
 
+	local need, got = 0, 0
+	for oid, obj in pairs(self.objectives) do
+		need = need + obj.need
+		got = got + obj.got
+	end
+
 	tip:ClearLines()
-	tip:AddDoubleLine(self.name, self.status and self.status or self.need > 0 and self.got .. "/" .. self.need, r, g, b, r, g, b)
+	tip:AddDoubleLine(self.name, self.status and self.status or need > 0 and got .. "/" .. need, r, g, b, r, g, b)
 
 	tip:AddLine(select(2, Q:GetQuestText(self.uid)), 0.8, 0.8, 0.8, true)
 	if #self.objectives > 0 then
@@ -193,7 +199,6 @@ function fux:RemoveZone(id, zone)
 	if type(zone) == "string" then
 		zone = self.zonesByName[zone]
 	end
-
 
 	if not id and zone then
 		for k, v in pairs(self.zones) do
@@ -292,9 +297,6 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 	row.visible = true
 	row.daily = tag == "*"
 
-	row.got = 0
-	row.need = 0
-
 	row:EnableMouse(true)
 	row:SetScript("OnEnter", questOnEnter)
 	row:SetScript("OnLeave", questOnLeave)
@@ -346,9 +348,21 @@ function quest_proto:HideAll()
 	for oid, o in pairs(self.objectives) do
 		o:Hide()
 	end
-	if self.need > 0 then
-		self.right:SetText(self.got .. "/" .. self.need)
+
+	local need, got = 0, 0
+	for oid, obj in pairs(self.objectives) do
+		need = need + obj.need
+		got = got + obj.got
 	end
+
+	if need > 0 then
+		if got == need then
+			self.right:SetText("(done)")
+		else
+			self.right:SetText(got .. "/" .. need)
+		end
+	end
+
 	self.visible = false
 end
 
@@ -356,9 +370,11 @@ function quest_proto:ShowAll()
 	if self.status ~= "(done)" then
 		self.right:SetText("")
 	end
+
 	for oid, o in pairs(self.objectives) do
 		o:Show()
 	end
+
 	self.visible = true
 end
 
@@ -393,6 +409,7 @@ end
 
 -- Objective creation
 function quest_proto:AddObjective(qid, name, got, need)
+	if not name or name == "" then return end
 	if self.objectivesByName[name] then
 		if got and need then
 			local obj = self.objectivesByName[name]
@@ -400,9 +417,11 @@ function quest_proto:AddObjective(qid, name, got, need)
 			obj.got = got
 			obj.need = need
 		end
+
 		if not self.visible and self.need > 0 then
 			self.right:SetText(self.got .. "/" .. self.need)
 		end
+
 		return self.objectivesByName[name]
 	end
 
