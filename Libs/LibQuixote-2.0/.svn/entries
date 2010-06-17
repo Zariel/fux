@@ -1,15 +1,15 @@
 10
 
 dir
-82
+84
 svn://svn.wowace.com/wow/libquixote-2-0/mainline/trunk/LibQuixote-2.0
 svn://svn.wowace.com/wow/libquixote-2-0/mainline
 
 
 
-2009-08-09T04:36:19.599477Z
-81
-kemayo
+2009-12-07T08:46:02.921786Z
+83
+kandarz
 
 
 
@@ -32,11 +32,11 @@ file
 
 
 
-2009-08-12T16:08:46.968750Z
-2e4e70a66f2f2dc4e9d5eba6ab09dc14
-2009-08-09T04:36:19.599477Z
-81
-kemayo
+2009-12-16T22:14:16.256448Z
+3bcc77f5b6ef86081aad74c18be27a75
+2009-12-07T08:46:02.921786Z
+83
+kandarz
 has-props
 
 
@@ -58,7 +58,7 @@ has-props
 
 
 
-27371
+27461
 
 lib.xml
 file

@@ -47,6 +47,11 @@ function fux:ADDON_LOADED(addon)
 	local f = CreateFrame("Frame", nil, UIParent)
 	f:SetHeight(425)
 	f:SetWidth(300)
+	--[[f:SetBackdrop({
+		bgFile = "Interface\\ChatFrame\\ChatFrameBackground", tile = true, tileSize = 16,
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 10,
+		insets = {left = 1, right = 1, top = 1, bottom = 1},
+	})]]
 	f:SetBackdrop({
 		bgFile = "Interface\\ChatFrame\\ChatFrameBackground", tile = true, tileSize = 16,
 		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 10,
@@ -185,7 +190,7 @@ function fux:QuestGained(event, title, uid, obj, zone)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
 	for o, got, need in Q:IterateObjectivesForQuest(uid) do
-		self:ObjectiveUpdate(event, title, uid, o, nil, got, need)
+		self:ObjectiveUpdate(event, title, uid, o, nil, got or 0, need or 0)
 	end
 
 	if event then
@@ -251,6 +256,9 @@ function fux:Init()
 	end
 
 	self:Reposition()
+
+	_G.WatchFrame:Hide()
+	_G.WatchFrame.Show = function() end
 
 	self.init = true
 end

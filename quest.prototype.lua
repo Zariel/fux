@@ -8,6 +8,14 @@ local zone_proto = CreateFrame("Frame")
 local quest_proto = CreateFrame("Frame")
 local objective_proto = CreateFrame("Frame")
 
+local error = function(...)
+	local s = "Fux:"
+	for i = 1, select("#", ...) do
+		s = s .. " " .. tostring(select(i, ...))
+	end
+	ChatFrame3:AddMessage(s)
+end
+
 local newRow, delRow
 do
 	local row_cache = {}
@@ -234,7 +242,7 @@ function zone_proto:Remove(qid, quest)
 		end
 	end
 
-	if not(qid and quest) then return end
+	if not(qid and quest) then return error("(quest remove) Unable to find qid or quest", qid, quest) end
 
 	quest:Hide()
 

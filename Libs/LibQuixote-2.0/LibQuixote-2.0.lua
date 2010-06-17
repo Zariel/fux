@@ -1,6 +1,6 @@
 --[[
 Name: LibQuixote-2.0
-Revision: $Revision: 81 $
+Revision: $Revision: 83 $
 Author(s): David Lynch (kemayo@gmail.com)
 Website: http://www.wowace.com/wiki/LibQuixote-2.0
 Documentation: http://www.wowace.com/wiki/LibQuixote-2.0
@@ -10,7 +10,7 @@ License: LGPL v2.1
 ]]
 
 local MAJOR_VERSION = "LibQuixote-2.0"
-local MINOR_VERSION = 90000 + tonumber(("$Revision: 81 $"):match("%d+")) or 0
+local MINOR_VERSION = 90000 + tonumber(("$Revision: 83 $"):match("%d+")) or 0
 
 -- #AUTODOC_NAMESPACE lib
 
@@ -354,14 +354,16 @@ function frame:QUEST_LOG_UPDATE()
 				if quest_objectives[uid] then
 					for desc, goal in pairs(quest_objectives[uid]) do
 						-- goal: {got, needed, type}
-						local oldgoal = old_quest_objectives[uid][desc]
-						if (goal[1] ~= 0) and (oldgoal and oldgoal[1] ~= goal[1]) then
-							-- An objective has advanced
-							lib.callbacks:Fire("Objective_Update", quest.title, uid, desc, oldgoal and oldgoal[1] or 0, goal[1], goal[2], goal[3])
-							changed = true
+						if (old_quest_objectives[uid]) then
+							local oldgoal = old_quest_objectives[uid][desc]
+							if (goal[1] ~= 0) and (oldgoal and oldgoal[1] ~= goal[1]) then
+								-- An objective has advanced
+								lib.callbacks:Fire("Objective_Update", quest.title, uid, desc, oldgoal and oldgoal[1] or 0, goal[1], goal[2], goal[3])
+								changed = true
+							end
 						end
 					end
-					if old_quest_objectives[uid][""] and not quest_objectives[uid][""] then
+					if old_quest_objectives[uid] and old_quest_objectives[uid][""] and not quest_objectives[uid][""] then
 						-- An objective was previously uncached and has now been filled in.
 						changed = true
 					end
