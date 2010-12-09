@@ -1,6 +1,6 @@
 --[[
 Name: LibQuixote-2.0
-Revision: $Revision: 83 $
+Revision: $Revision$
 Author(s): David Lynch (kemayo@gmail.com)
 Website: http://www.wowace.com/wiki/LibQuixote-2.0
 Documentation: http://www.wowace.com/wiki/LibQuixote-2.0
@@ -10,12 +10,15 @@ License: LGPL v2.1
 ]]
 
 local MAJOR_VERSION = "LibQuixote-2.0"
-local MINOR_VERSION = 90000 + tonumber(("$Revision: 83 $"):match("%d+")) or 0
+local MINOR_VERSION = 90000 or 0
 
 -- #AUTODOC_NAMESPACE lib
 
 local lib, oldMinor = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
 if not lib then return end
+
+local debugf = tekDebug and tekDebug:GetFrame("LibQuixote-2.0")
+local function Debug(...) if debugf then debugf:AddMessage(string.join(", ", tostringall(...))) end end
 
 -- localization issues:
 local DUNGEON = LFG_TYPE_DUNGEON
@@ -162,10 +165,10 @@ end
 -- Sorts a table of quests by level, with quests of the same level ordered
 -- by elite, dungeon or raid tags, i.e. normal < elite < dungeon < raid.
 -- Quests of the same level and tag are sorted alphabetically by title.
-local questSort = function(a,b)
+local questSort = function(a, b)
 	local q = lib.quests
-	local aa = (q[a].level*4) + (q[a].tag and tagWeight[q[a].tag] or 0)
-	local bb = (q[b].level*4) + (q[b].tag and tagWeight[q[b].tag] or 0)
+	local aa = (q[a].level * 8) + (q[a].tag and tagWeight[q[a].tag] or 0)
+	local bb = (q[b].level * 8) + (q[b].tag and tagWeight[q[b].tag] or 0)
 	if aa == bb then
 		return q[a].title < q[b].title
 	end
@@ -179,6 +182,7 @@ lib.quest_ids = lib.quest_ids or new()
 lib.quest_zones = lib.quest_zones or new()
 lib.zones = lib.zones or new()
 lib.quest_objectives = lib.quest_objectives or new()
+lib.quest_objective_status = lib.quest_objective_status or new()
 lib.quest_mobs = lib.quest_mobs or new()
 lib.quest_items = lib.quest_items or new()
 
@@ -218,6 +222,9 @@ local monsters_pattern = '^' .. QUEST_MONSTERS_KILLED:gsub('(%%%d?$?.)', '(.+)')
 local faction_pattern = '^' .. QUEST_FACTION_NEEDED:gsub('(%%%d?$?.)', '(.+)') .. '$' --QUEST_FACTION_NEEDED = "%s: %s / %s"
 local player_pattern = '^' .. QUEST_PLAYERS_KILLED:gsub('(%%%d?$?.)', '(.+)') .. '$' --QUEST_PLAYERS_KILLED = "Players slain: %d/%d"
 
+local troublesome_objectives = {}
+local uid_zone_map = {}
+
 local update_is_running
 function frame:QUEST_LOG_UPDATE()
 	if update_is_running then
@@ -228,26 +235,42 @@ function frame:QUEST_LOG_UPDATE()
 	doAll(deepDel, lib.quest_ids, lib.quest_zones, lib.quest_mobs, lib.quest_items, lib.zones)
 	
 	local quests, old_quests = new(), lib.quests
-	local quest_objectives, old_quest_objectives = new(), lib.quest_objectives
-	local quest_zones, quest_ids, zones, quest_mobs, quest_items = new(), new(), new(), new(), new()
+	local quest_objective_status, old_quest_objective_status = new(), lib.quest_objective_status
+	local quest_zones, old_quest_zones = new(), lib.quest_zones
+	local quest_ids, zones, quest_mobs, quest_items, quest_objectives = new(), new(), new(), new(), new(), new()
 	
 	-- The quest log is scanned:
-	local selectionId = GetQuestLogSelection()
 	local numEntries, numQuests = GetNumQuestLogEntries()
 	local numQuestsComplete = 0
 	local zone
 	
+	Debug("entries", numEntries, numQuests)
+
 	if numEntries > 0 then
-		for id = 1, numEntries do
-			SelectQuestLogEntry(id)
-			local name, level, tag, group, header, collapsed, complete, daily = GetQuestLogTitle(id)
+		local quest_count, id, overflow_handled = 0, 0, false
+		while quest_count < numQuests do
+			id = id + 1
+			local name, level, tag, group, header, collapsed, complete, daily, unique_id = GetQuestLogTitle(id)
+			Debug("Scan", name, header, collapsed, unique_id)
 			if header then
-				zone = name
+				zone = name or (UNKNOWN .. " " .. id)
 				table.insert(zones, zone)
 				quest_zones[zone] = new()
 			else
+				quest_count = quest_count + 1
+				if id > numEntries then
+					Debug("Overflow", name, uid_zone_map[unique_id])
+					zone = uid_zone_map[unique_id] or UNKNOWN
+					if zone == UNKNOWN and not overflow_handled then
+						table.insert(zones, zone)
+						quest_zones[zone] = new()
+						overflow_handled = true
+					end
+				else
+					-- it's in a real zone; remember this in case things get collapsed later
+					uid_zone_map[unique_id] = zone
+				end
 				local q = new()
-				local unique_id = tonumber(string.match(GetQuestLink(id), 'quest:(%d+)'))
 				
 				q.unique_id = unique_id
 				q.id = id
@@ -268,7 +291,9 @@ function frame:QUEST_LOG_UPDATE()
 				
 				local numObjectives = GetNumQuestLeaderBoards(id)
 				if numObjectives and numObjectives > 0 then
+					local trouble = troublesome_objectives[unique_id] or 0
 					local objectives = new()
+					quest_objectives[unique_id] = new()
 					for o = 1, numObjectives do
 						local desc, qtype, done = GetQuestLogLeaderBoard(o, id)
 						local numNeeded, numItems, mobName
@@ -299,29 +324,44 @@ function frame:QUEST_LOG_UPDATE()
 							end
 						elseif qtype == 'reputation' then
 							desc, numItems, numNeeded = desc:match(faction_pattern)
-						elseif qtype == 'event' then
+						elseif (qtype == 'event') or (qtype == 'log') then
 							numNeeded = 1
 							numItems = done and 1 or 0
 						elseif qtype == 'player' then
 							numItems, numNeeded = desc:match(player_pattern)
 							desc = COMBATLOG_FILTER_STRING_HOSTILE_PLAYERS -- "Enemy Players"
+						elseif qtype == 'spell' then
+							-- desc can stay as-is
+							numItems = done and 1 or 0
+							numNeeded = 1
 						end
 						if (not desc) or strtrim(desc) == "" then
-							desc = ""
-							frame:Show() -- schedules a rescan in 0.1 seconds
+							trouble = trouble + 1
 						end
-						objectives[desc] = new(numItems, numNeeded, qtype)
+						if desc then
+							objectives[desc] = new(numItems, numNeeded, qtype)
+							table.insert(quest_objectives[unique_id], desc)
+						end
 					end
-					quest_objectives[unique_id] = objectives
+					quest_objective_status[unique_id] = objectives
+
+					if (trouble > 0) and (trouble / numObjectives < 10) then
+						troublesome_objectives[unique_id] = trouble
+						frame:Show() -- schedules a rescan in 0.1 seconds
+					end
 				else
 					quest_objectives[unique_id] = false
+					quest_objective_status[unique_id] = false
 				end
 				quests[unique_id] = q
 				table.insert(quest_ids, unique_id)
 				table.insert(quest_zones[zone], unique_id)
 			end
+			if id == numQuests * 2 then
+				-- just in case, to avoid infinite loops (I don't trust whiles)
+				quest_count = numQuests
+			end
 		end
-		SelectQuestLogEntry(selectionId)
 	end
 	
 	lib.quests = quests
@@ -329,6 +369,7 @@ function frame:QUEST_LOG_UPDATE()
 	lib.quest_zones = quest_zones
 	lib.zones = zones
 	lib.quest_objectives = quest_objectives
+	lib.quest_objective_status = quest_objective_status
 	lib.quest_items = quest_items
 	lib.quest_mobs = quest_mobs
 	lib.quests_complete = numQuestsComplete
@@ -351,11 +392,11 @@ function frame:QUEST_LOG_UPDATE()
 			else
 				local oldquest = old_quests[uid]
 				-- Any objectives changed?
-				if quest_objectives[uid] then
-					for desc, goal in pairs(quest_objectives[uid]) do
+				if quest_objective_status[uid] then
+					for desc, goal in pairs(quest_objective_status[uid]) do
 						-- goal: {got, needed, type}
-						if (old_quest_objectives[uid]) then
-							local oldgoal = old_quest_objectives[uid][desc]
+						if (old_quest_objective_status[uid]) then
+							local oldgoal = old_quest_objective_status[uid][desc]
 							if (goal[1] ~= 0) and (oldgoal and oldgoal[1] ~= goal[1]) then
 								-- An objective has advanced
 								lib.callbacks:Fire("Objective_Update", quest.title, uid, desc, oldgoal and oldgoal[1] or 0, goal[1], goal[2], goal[3])
@@ -363,7 +404,7 @@ function frame:QUEST_LOG_UPDATE()
 							end
 						end
 					end
-					if old_quest_objectives[uid] and old_quest_objectives[uid][""] and not quest_objectives[uid][""] then
+					if old_quest_objective_status[uid] and old_quest_objective_status[uid][""] and not quest_objective_status[uid][""] then
 						-- An objective was previously uncached and has now been filled in.
 						changed = true
 					end
@@ -386,6 +427,15 @@ function frame:QUEST_LOG_UPDATE()
 				changed = true
 			end
 		end
+		for zone, zquests in pairs(quest_zones) do
+			if not old_quest_zones[zone] then
+				lib.callbacks:Fire("Quest_Zone_Gained", zone, #zquests)
+				changed = true
+			elseif #old_quest_zones[zone] ~= #zquests then
+				lib.callbacks:Fire("Zone_Quests_Changed", zone, #zquests)
+				changed = true
+			end
+		end
 	else
 		changed = true
 		lib.firstDone = true
@@ -400,7 +450,7 @@ function frame:QUEST_LOG_UPDATE()
 	
 	-- clean up junk tables
 	
-	doAll(deepDel, old_quests, old_quest_objectives)
+	doAll(deepDel, old_quests, old_quest_objectives, old_quest_objective_status)
 	
 	update_is_running = false
 end
@@ -426,9 +476,9 @@ function frame:PARTY_MEMBERS_CHANGED()
 	local p = new()
 	local sent
 	for i=1, GetNumPartyMembers() do
-		local name = UnitName('party'..i)
+		local name, realm = UnitName('party'..i)
 		p[name] = true
-		if lib.party[name] == nil and name ~= UNKNOWN then
+		if lib.party[name] == nil and name ~= UNKNOWN and not realm then
 			lib:SendAddonMessage("v"..MINOR_VERSION, "WHISPER", name)
 			lib.party[name] = false -- to prevent spamming with pointless version data
 			lib.party_quests[name] = new()
@@ -462,8 +512,8 @@ local commhandlers = {
 		--And sync:
 		for _, uid in pairs(lib.quest_ids) do
 			lib:SendAddonMessage("q"..uid, "WHISPER", sender, "BULK")
-			if lib.quest_objectives[uid] then
-				for desc, o in pairs(lib.quest_objectives[uid]) do
+			if lib.quest_objective_status[uid] then
+				for desc, o in pairs(lib.quest_objective_status[uid]) do
 					local isrep = o[3] == "reputation"
 					local got = isrep and lib:GetReactionLevel(o[1]) or o[1] or '1'
 					local need = isrep and lib:GetReactionLevel(o[2]) or o[2] or '1'
@@ -541,12 +591,10 @@ local commhandlers = {
 }
 function frame:CHAT_MSG_ADDON(prefix, msg, distribution, sender)
 	if prefix ~= "Quixote2" or sender == playerName or lib.disable_comms then return end
-	--LibStub("AceConsole-2.0"):PrintLiteral(msg, distribution, sender)
 	
 	local commtype, remainder = msg:match("^(%a)(.*)")
 	if (not commtype) or (not commhandlers[commtype]) then return end
 	
-	--/dump LibStub("LibQuixote-2.0").party_quests.Alibank
 	commhandlers[commtype](remainder, distribution, sender)
 end
 lib:RegisterCallback("Quest_Gained", function(event, title, uid, objectives)
@@ -578,22 +626,15 @@ end)
 
 -- Public API:
 
-local function zoneIter(t, i)
-	if not t then return end
-	local i, v = next(t, i)
-	if i then
-		return i, v, #lib.quest_zones[v]
-	end
-end
 function lib:IterateZones()
-	return zoneIter, self.zones, nil
+	return ipairs(self.zones)
 end
 
 local function zoneQuestIter(t, i)
 	if not t then return end
-	local i, v = next(t, i)
-	if i then
-		return i, lib:GetQuestByUid(v)
+	i = (i or 0) + 1
+	if t[i] then
+		return i, lib:GetQuestByUid(t[i])
 	end
 end
 function lib:IterateQuestsInZone(zone)
@@ -604,15 +645,34 @@ function lib:IterateQuestsByLevel()
 	return zoneQuestIter, self.quest_ids, nil
 end
 
-local function objIter(t, k)
-	if not t then return end
-	local k, v = next(t, k)
-	if k then
-		return k, unpack(v)
+do
+	-- There's a sorted and unsorted version presented here via argument, with slightly
+	-- different returns. This is because I didn't want to release a whole new version
+	-- for this one minor change. When next the major version is bumped, get rid of
+	-- unsorted.
+	local current_uid
+	local function objIter(t, i)
+		if not t then return end
+		local i = (i or 0) + 1
+		local value = t[i]
+		if value and lib.quest_objective_status[current_uid][value] then
+			return i, value, unpack(lib.quest_objective_status[current_uid][value])
+		end
 	end
-end
-function lib:IterateObjectivesForQuest(uid)
-	return objIter, self.quest_objectives[uid], nil
+	local function objIterUnsorted(t, k)
+		if not t then return end
+		local k, v = next(t, k)
+		if k then
+			return k, unpack(v)
+		end
+	end
+	function lib:IterateObjectivesForQuest(uid, sorted)
+		if sorted then
+			current_uid = uid
+			return objIter, self.quest_objectives[uid], nil
+		end
+		return objIterUnsorted, self.quest_objective_status[uid], nil
+	end
 end
 
 function lib:GetNumQuests()
