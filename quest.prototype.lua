@@ -14,9 +14,9 @@ function proto:OnClick(button)
 	if(button == "LeftButton") then
 		if IsAltKeyDown() then
 			if self.visible then
-				self:HideAll()
+				self:HideObjectives()
 			else
-				self:ShowAll()
+				self:ShowObjectives()
 			end
 
 			fux:Reposition()
@@ -81,17 +81,10 @@ function proto:OnLeave()
 	end
 end
 
--- Objective Script Handlers
-
-
--- Zone Public functions
--- Quest public functions
-function proto:HideAll()
+function proto:HideObjectives()
 	for oid, o in pairs(self.objectives) do
 		o:Hide()
 	end
-
-	self:Hide()
 
 	--[[
 	local need, got = 0, 0
@@ -112,7 +105,7 @@ function proto:HideAll()
 	self.visible = false
 end
 
-function proto:ShowAll()
+function proto:ShowObjectives()
 	if self.status ~= "(done)" and self.status ~= "(failed)" then
 		self.right:SetText("")
 	end

@@ -8,9 +8,9 @@ local prototypes = ns.prototype
 function proto:OnClick(button)
 	if button == "LeftButton" then
 		if self.visible then
-			self:HideAll()
+			self:HideQuests()
 		else
-			self:ShowAll()
+			self:ShowQuests()
 		end
 		fux:Reposition()
 	end
@@ -32,23 +32,24 @@ function proto:RemoveAll()
 	end
 end
 
-function proto:HideAll()
+function proto:HideQuests()
 	self.text:SetText("+" .. self.name)
 
 	for qid, q in pairs(self.quests) do
 		-- Hide objs also
-		q:HideAll()
+		q:HideObjectives()
+		q:Hide()
 	end
 
 	self.visible = false
 end
 
-function proto:ShowAll()
+function proto:ShowQuests()
 	self.text:SetText("-" .. self.name)
 
 	for qid, q in pairs(self.quests) do
 		q:Show()
-		q:ShowAll()
+		q:ShowObjectives()
 	end
 
 	self.visible = true

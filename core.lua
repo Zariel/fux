@@ -255,9 +255,9 @@ function fux:Init()
 	local sub, cur = GetMinimapZoneText(), GetRealZoneText()
 	for id, zone in pairs(self.zones) do
 		if zone.name == sub or zone.name == cur then
-			zone:ShowAll()
+			zone:ShowQuests()
 		else
-			zone:HideAll()
+			zone:HideQuests()
 		end
 	end
 
