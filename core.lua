@@ -322,13 +322,12 @@ function fux:Reposition()
 				else
 					local prev = zone.quests[qid - 1]
 
-					if prev.visible and prev.objectivesCount > 0 then
+					if(prev.visible and prev.objectivesCount > 0) then
 						local obj = prev.objectives[prev.objectivesCount]
 						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 1)
 					else
 						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 1)
 					end
-
 				end
 
 				quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
@@ -344,7 +343,7 @@ function fux:Reposition()
 
 						obj:ClearAllPoints()
 
-						if oid == 1 then
+						if(oid == 1) then
 							obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
 						else
 							local prev = quest.objectives[oid - 1]
