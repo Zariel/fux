@@ -34,7 +34,6 @@ function proto:NewRow(height)
 		row:EnableMouse(true)
 
 		local text = row:CreateFontString(nil, "OVERLAY")
-		text:SetFont(STANDARD_TEXT_FONT, height)
 		text:SetPoint("TOPLEFT", row, "TOPLEFT")
 		row.text = text
 
@@ -43,13 +42,15 @@ function proto:NewRow(height)
 		right:SetPoint("TOP", row)
 		right:SetPoint("BOTTOM", row)
 		right:SetJustifyH("RIGHT")
-		right:SetFont(STANDARD_TEXT_FONT, height)
 		row.right = right
 	end
 
 	row:Show()
 	row:SetHeight(height)
 	row:SetWidth(fux.frame:GetWidth())
+
+	row.text:SetFont(STANDARD_TEXT_FONT, height)
+	row.right:SetFont(STANDARD_TEXT_FONT, height)
 
 	row.right:SetTextColor(1, 1, 1)
 	row.text:SetTextColor(1, 1, 1)
