@@ -1,15 +1,7 @@
-local parent, ns = ...
-
-local Q = LibStub("LibQuixote-2.0")
-
-ns.fux = {}
-ns.fux.events = CreateFrame("Frame")
-ns.prototypes = {}
-ns.Q = Q
-
 local pairs = pairs
 local ipairs = ipairs
 
+local Q = ns.Q
 local fux = ns.fux
 fux.fade = 0.7
 
@@ -394,7 +386,66 @@ function fux:UNIT_LEVEL(unit)
 	end
 end
 
+-- Zone Creation
+function fux:NewZone(name)
+	if(self.zonesByName[name]) then
+		return self.zonesByName[name]
+	end
 
+	local row = prototypes.zone:New(14)
+
+	row.text:SetText("-" .. name)
+	row.text:SetTextColor(fade, fade, fade)
+
+	row.name = name
+	row.id = fux.zonesCount
+	row.visible = true
+	row.type = "zone"
+
+	row.parent = self
+
+	row.quests = {}
+	row.questsByName = {}
+	row.questCount = 0
+
+	local pos = 1
+	for i, z in ipairs(self.zones) do
+		pos = i + 1
+		if z.name > name then
+			pos = i
+			break
+		end
+	end
+
+	fux.zoneCount = fux.zoneCount + 1
+	table.insert(self.zones, pos, row)
+	self.zonesByName[name] = row
+
+	return row
+end
+
+function fux:RemoveZone(id, zone)
+	if type(zone) == "string" then
+		zone = self.zonesByName[zone]
+	end
+
+	if not id and zone then
+		for k, v in pairs(self.zones) do
+			if v == zone then
+				id = k
+				break
+			end
+		end
+	end
+
+	if not(id and zone) then return end
+
+	zone:Hide()
+
+	table.remove(self.zones, id)
+	self.zonesByName[zone.name] = nil
+	self.zoneCount = self.zoneCount - 1
+end
 function SlashCmdList.FUX()
 	if fux.frame:IsShown() then
 		ns.db.visible = false

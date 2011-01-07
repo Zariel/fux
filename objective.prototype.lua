@@ -2,7 +2,7 @@ local parent, ns = ...
 local Q = ns.Q
 
 local proto = CreateFrame("Frame")
-local parent = ns.prototype
+local prototypes = ns.prototype
 
 function proto:OnClick(button)
 	if(button == "LeftButton") then
@@ -21,9 +21,11 @@ function proto:OnLeave()
 end
 
 function proto:New(height)
-	return parent.NewRow(self, height)
+	return prototypes.NewRow(self, height)
 end
 
 function proto:Del()
-	return parent.DelRow(self)
+	return prototypes.DelRow(self)
 end
+
+prototypes.objective = proto

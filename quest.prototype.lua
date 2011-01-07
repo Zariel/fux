@@ -1,52 +1,24 @@
 local parent, ns = ...
-local fux = ns.fux
+
+local parent, ns = ...
 local Q = ns.Q
+local fux = ns.fux
 
-local zone_proto = CreateFrame("Frame")
-local quest_proto = CreateFrame("Frame")
-
-local error = function(...)
-	local s = "Fux:"
-	for i = 1, select("#", ...) do
-		s = s .. " " .. tostring(select(i, ...))
-	end
-	ChatFrame3:AddMessage(s)
-end
-
+local proto = CreateFrame("Frame")
+local prototypes = ns.prototype
 
 local tip = GameTooltip
 
--- Zone Script Handlers
-local zoneOnClick = function(self, button)
-	if button == "LeftButton" then
-		if self.visible then
-			self:HideAll()
-		else
-			self:ShowAll()
-		end
-		fux:Reposition()
-	end
-end
-
-local zoneOnEnter = function(self)
-	self.text:SetTextColor(1, 1, 1)
-	self.right:SetTextColor(1, 1, 1)
-end
-
-local zoneOnLeave = function(self)
-	self.text:SetTextColor(fade, fade, fade)
-	self.right:SetTextColor(fade, fade, fade)
-end
-
 -- Quest Script Handlers
-local questOnClick = function(self, button)
-	if button == "LeftButton" then
+function proto:OnClick(self, button)
+	if(button == "LeftButton") then
 		if IsAltKeyDown() then
 			if self.visible then
 				self:HideAll()
 			else
 				self:ShowAll()
 			end
+
 			fux:Reposition()
 		else
 			Q:ShowQuestLog(self.uid)
@@ -54,7 +26,7 @@ local questOnClick = function(self, button)
 	end
 end
 
-local questOnEnter = function(self)
+function proto:OnEnter()
 	local r, g, b
 	if self.daily then
 		r, g, b = 62/255, 174/255, 1
@@ -92,7 +64,7 @@ local questOnEnter = function(self)
 	tip:Show()
 end
 
-local questOnLeave = function(self)
+function proto:OnLeave()
 	local r, g, b
 	if self.daily then
 		r, g, b = 62/255, 174/255, 1
@@ -111,202 +83,10 @@ end
 
 -- Objective Script Handlers
 
--- Zone Creation
-function fux:NewZone(name)
-	if self.zonesByName[name] then
-		return self.zonesByName[name]
-	end
-
-	fux.zoneCount = fux.zoneCount + 1
-
-	local row = newRow(zone_proto, 14)
-
-	row:EnableMouse()
-	row:SetScript("OnMouseUp", zoneOnClick)
-	row:SetScript("OnEnter", zoneOnEnter)
-	row:SetScript("OnLeave", zoneOnLeave)
-
-	row.text:SetText("-" .. name)
-	row.text:SetTextColor(fade, fade, fade)
-
-	row.name = name
-	row.id = fux.zonesCount
-	row.visible = true
-	row.type = "zone"
-
-	row.parent = self
-
-	row.quests = {}
-	row.questsByName = {}
-	row.questCount = 0
-
-	local pos = 1
-	for i, z in ipairs(self.zones) do
-		pos = i + 1
-		if z.name > name then
-			pos = i
-			break
-		end
-	end
-
-	table.insert(self.zones, pos, row)
-	self.zonesByName[name] = row
-
-	return row
-end
-
-function fux:RemoveZone(id, zone)
-	if type(zone) == "string" then
-		zone = self.zonesByName[zone]
-	end
-
-	if not id and zone then
-		for k, v in pairs(self.zones) do
-			if v == zone then
-				id = k
-				break
-			end
-		end
-	end
-
-	if not(id and zone) then return end
-
-	zone:Hide()
-
-	table.remove(self.zones, id)
-	self.zonesByName[zone.name] = nil
-	self.zoneCount = self.zoneCount - 1
-end
-
 
 -- Zone Public functions
-function zone_proto:Remove(qid, quest)
-	if type(quest) == "string" then
-		quest = self.questsByName[quest]
-	end
-
-	if not qid and quest then
-		for k, v in pairs(self.quests) do
-			if v == quest then
-				qid = k
-				break
-			end
-		end
-	end
-
-	if not(qid and quest) then return error("(quest remove) Unable to find qid or quest", qid, quest) end
-
-	quest:Hide()
-
-	quest:RemoveAll()
-
-	table.remove(self.quests, qid)
-	self.questsByName[quest.name] = nil
-	self.questCount = self.questCount - 1
-end
-
-function zone_proto:RemoveAll()
-	for qid, quest in pairs(self.quests) do
-		self:Remove(qid, quest)
-	end
-end
-
-function zone_proto:HideAll()
-	self.text:SetText("+" .. self.name)
-	for qid, q in pairs(self.quests) do
-		q:Hide()
-		for oid, o in pairs(q.objectives) do
-			o:Hide()
-		end
-	end
-	self.visible = false
-end
-
-function zone_proto:ShowAll()
-	self.text:SetText("-" .. self.name)
-	for qid, q in pairs(self.quests) do
-		q:Show()
-		for oid, o in pairs(q.objectives) do
-			if q.visible then
-				o:Show()
-			end
-		end
-	end
-	self.visible = true
-end
-
--- Quest Creation
-function zone_proto:AddQuest(uid, name, level, tag, status)
-	if self.questsByName[name]then
-		if(status) then
-			self.questsByName[name].right:SetText(status)
-		end
-		return self.questsByName[name]
-	end
-
-	self.questCount = self.questCount + 1
-
-	local row = newRow(quest_proto)
-
-	row.text:SetText(string.format("[%s] %s", tag and level .. tag or level, name))
-
-	row.name = name
-	row.level = level
-	row.type = "quest"
-	row.status = status
-	row.visible = true
-	row.daily = tag == "*"
-
-	row:EnableMouse(true)
-	row:SetScript("OnEnter", questOnEnter)
-	row:SetScript("OnLeave", questOnLeave)
-	row:SetScript("OnMouseUp", questOnClick)
-
-	local r, g, b
-	if row.daily then
-		r, g, b = 62/255, 174/255, 1
-	else
-		local col = GetQuestDifficultyColor(level)
-		r, g, b = col.r, col.g, col.b
-	end
-
-	row.text:SetTextColor(r * fade, g * fade, b * fade)
-	row.right:SetTextColor(r * fade, g * fade, b * fade)
-
-	if status then
-		row.status = status
-		row.right:SetText(status)
-	end
-
-	row.id = self.questCount
-	row.uid = uid
-
-	row.parent = self
-
-	row.objectives = {}
-	row.objectivesByName = {}
-	row.objectivesCount = 0
-
-	local pos = 1
-	for i, q in pairs(self.quests) do
-		pos = i + 1
-		if level < q.level then
-			pos = i
-			break
-		elseif level == q.level and name < q.name then
-			pos = i
-			break
-		end
-	end
-
-	table.insert(self.quests, pos, row)
-	self.questsByName[name] = row
-
-	return row
-end
-
 -- Quest public functions
-function quest_proto:HideAll()
+function proto:HideAll()
 	for oid, o in pairs(self.objectives) do
 		o:Hide()
 	end
@@ -328,8 +108,8 @@ function quest_proto:HideAll()
 	self.visible = false
 end
 
-function quest_proto:ShowAll()
-	if self.status ~= "(done)" then
+function proto:ShowAll()
+	if self.status ~= "(done)" and self.status ~= "(failed)" then
 		self.right:SetText("")
 	end
 
@@ -340,39 +120,17 @@ function quest_proto:ShowAll()
 	self.visible = true
 end
 
-function quest_proto:Remove(oid, obj)
-	if type(obj) == "string" then
-		obj = self.objectivesByName[obj]
-	end
-
-	error("Remove obj", oid, obj and obj.name or "No object")
-
-	if(not (oid or obj)) then
-		for i = 1, self.objectivesCount do
-			if self.objectives[i] == obj then
-				oid = i
-				break
-			end
-		end
-	end
-
-	if(not(obj and oid)) then return error("Unable to remote objective", obj, oid, obj and obj.name) end
-
-	obj:Hide()
-
-	table.remove(self.objectives, oid)
-	self.objectivesByName[obj.name] = nil
-	self.objectivesCount = self.objectivesCount - 1
-end
-
-function quest_proto:RemoveAll()
+-- Remove quest
+function proto:Remove()
 	for oid, obj in pairs(self.objectives) do
-		self:Remove(oid, obj)
+		obj:Remove()
 	end
+
+	self:Del()
 end
 
 -- Objective creation
-function quest_proto:AddObjective(qid, name, got, need)
+function proto:AddObjective(qid, name, got, need)
 	if(not name or name == "" or name:len() <= 1) then return error("No objective name for quest ", qid) end
 
 	if(self.objectivesByName[name]) then
@@ -391,8 +149,6 @@ function quest_proto:AddObjective(qid, name, got, need)
 		return self.objectivesByName[name]
 	end
 
-	self.objectivesCount = self.objectivesCount + 1
-
 	local row = prototypes.objective:New()
 
 	row.text:SetText(name)
@@ -400,8 +156,6 @@ function quest_proto:AddObjective(qid, name, got, need)
 
 	row.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 	row.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
-
-	row:EnableMouse(true)
 
 	row.name = name
 	row.got = got
@@ -413,17 +167,23 @@ function quest_proto:AddObjective(qid, name, got, need)
 
 	row.parent = self
 
-	local pos = 1
-	for i, o in ipairs(self.objectives) do
-		pos = i + 1
-		if name < o.name then
-			pos = i
+	for i = 1, #self.objectives do
+		if self.objectives[i].name < o.name then
+			table.insert(self.objectives, i, row)
 			break
 		end
 	end
 
-	table.insert(self.objectives, pos, row)
+	self.objectivesCount = self.objectivesCount + 1
 	self.objectivesByName[name] = row
 
 	return row
+end
+
+function proto:New(height)
+	return parent.NewRow(self, height)
+end
+
+function proto:Del()
+	return parent.DelRow(self)
 end

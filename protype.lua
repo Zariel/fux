@@ -33,7 +33,7 @@ function proto:NewRow(height)
 		row:Show()
 	else
 		row = CreateFrame("Frame", nil, fux.frame)
-		row.tid = 0
+		row:EnableMouse(true)
 
 		local text = row:CreateFontString(nil, "OVERLAY")
 		text:SetFont(STANDARD_TEXT_FONT, height)

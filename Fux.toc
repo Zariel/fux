@@ -7,6 +7,10 @@
 
 embeds.xml
 
-core.lua
-frame.lua
+init.lua
+
+zone.prototype.lua
 quest.prototype.lua
+objective.prototype.lua
+
+core.lua
