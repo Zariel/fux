@@ -31,10 +31,6 @@ function proto:Remove()
 	self.parent.objectivesByName[self.name] = nil
 	self.parent.objectivesCount = self.parent.objectivesCount - 1
 
-	for oid, obj in pairs(self.objectives) do
-		obj:Remove()
-	end
-
 	self:Del()
 end
 
