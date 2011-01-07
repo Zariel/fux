@@ -91,7 +91,7 @@ function fux:ADDON_LOADED(addon)
 		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 	end)
 
-	if self.db.visible then
+	if ns.db.visible then
 		f:Show()
 	else
 		f:Hide()
