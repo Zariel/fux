@@ -1,15 +1,17 @@
 local parent, ns = ...
 
+local Q = LibStub("LibQuixote-2.0")
+
 ns.fux = {}
 ns.fux.events = CreateFrame("Frame")
+ns.prototypes = {}
+ns.Q = Q
 
-local fux = ns.fux
-
-local Q = LibStub("LibQuixote-2.0")
 local pairs = pairs
 local ipairs = ipairs
 
-ns.Q = Q
+local fux = ns.fux
+fux.fade = 0.7
 
 fux.events:SetScript("OnEvent", function(self, event, ...)
 	fux[event](fux, ...)

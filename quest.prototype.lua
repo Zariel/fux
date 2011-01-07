@@ -2,12 +2,8 @@ local parent, ns = ...
 local fux = ns.fux
 local Q = ns.Q
 
-local fade = 0.7
-fux.fade = fade
-
 local zone_proto = CreateFrame("Frame")
 local quest_proto = CreateFrame("Frame")
-local objective_proto = CreateFrame("Frame")
 
 local error = function(...)
 	local s = "Fux:"
@@ -17,38 +13,6 @@ local error = function(...)
 	ChatFrame3:AddMessage(s)
 end
 
-local newRow, delRow
-do
-	local row_cache = {}
-	newRow = function(parent, height)
-		height = height or 12
-		local row = next(row_cache)
-		if(row) then
-			row_cache[row] = nil
-			row:Show()
-		else
-			row = CreateFrame("Frame", nil, fux.frame)
-			row.tid = 0
-			row:SetHeight(height)
-			row:SetWidth(fux.frame:GetWidth())
-
-			local text = row:CreateFontString(nil, "OVERLAY")
-			text:SetFont(STANDARD_TEXT_FONT, height)
-			text:SetPoint("TOPLEFT", row, "TOPLEFT")
-			row.text = text
-
-			local level = row:CreateFontString(nil, "OVERLAY")
-			level:SetPoint("RIGHT", row)
-			level:SetPoint("TOP", row)
-			level:SetPoint("BOTTOM", row)
-			level:SetJustifyH("RIGHT")
-			level:SetFont(STANDARD_TEXT_FONT, height)
-			row.right = level
-		end
-
-		return setmetatable(row, { __index = parent })
-	end
-end
 
 local tip = GameTooltip
 
@@ -146,21 +110,6 @@ local questOnLeave = function(self)
 end
 
 -- Objective Script Handlers
-local objOnClick = function(self, button)
-	if button == "LeftButton" then
-		Q:ShowQuestLog(self.qid)
-	end
-end
-
-local objOnEnter = function(self)
-	self.text:SetTextColor(1, 1, 1)
-	self.right:SetTextColor(1, 1, 1)
-end
-
-local objOnLeave = function(self)
-	self.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
-	self.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
-end
 
 -- Zone Creation
 function fux:NewZone(name)
@@ -426,7 +375,7 @@ end
 function quest_proto:AddObjective(qid, name, got, need)
 	if(not name or name == "" or name:len() <= 1) then return error("No objective name for quest ", qid) end
 
-	if self.objectivesByName[name] then
+	if(self.objectivesByName[name]) then
 		if(got and need) then
 			local obj = self.objectivesByName[name]
 			obj.right:SetText(got .. "/" .. need)
@@ -434,7 +383,8 @@ function quest_proto:AddObjective(qid, name, got, need)
 			obj.need = need
 		end
 
-		if not self.visible and self.need > 0 then
+		-- Is this right?
+		if(not self.visible and self.need > 0) then
 			self.right:SetText(self.got .. "/" .. self.need)
 		end
 
@@ -443,7 +393,7 @@ function quest_proto:AddObjective(qid, name, got, need)
 
 	self.objectivesCount = self.objectivesCount + 1
 
-	local row = newRow(objective_proto)
+	local row = prototypes.objective:New()
 
 	row.text:SetText(name)
 	row.right:SetText(got .. "/" .. need)
@@ -452,9 +402,6 @@ function quest_proto:AddObjective(qid, name, got, need)
 	row.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
 
 	row:EnableMouse(true)
-	row:SetScript("OnMouseUp", objOnClick)
-	row:SetScript("OnEnter", objOnEnter)
-	row:SetScript("OnLeave", objOnLeave)
 
 	row.name = name
 	row.got = got
