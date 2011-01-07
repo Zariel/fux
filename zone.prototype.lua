@@ -57,14 +57,17 @@ end
 
 -- Quest Creation
 function proto:AddQuest(uid, name, level, tag, status)
-	if self.questsByName[name]then
+	local row = self.questsByName[name]
+	if(row) then
 		if(status) then
-			self.questsByName[name].right:SetText(status)
+			row.status = status
+			row.right:SetText(status)
 		end
-		return self.questsByName[name]
+
+		return row
 	end
 
-	local row = prototypes.quest:New()
+	row = prototypes.quest:New()
 
 	row.text:SetText(string.format("[%s] %s", tag and level .. tag or level, name))
 
@@ -86,8 +89,7 @@ function proto:AddQuest(uid, name, level, tag, status)
 	row.text:SetTextColor(r * ns.fux.fade, g * ns.fux.fade, b * ns.fux.fade)
 	row.right:SetTextColor(r * ns.fux.fade, g * ns.fux.fade, b * ns.fux.fade)
 
-	if status then
-		row.status = status
+	if(status) then
 		row.right:SetText(status)
 	end
 
