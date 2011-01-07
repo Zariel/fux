@@ -316,10 +316,9 @@ function fux:Reposition()
 				width = math.max(width, l)
 
 				quest:ClearAllPoints()
-				quest:SetPoint("RIGHT", self.frame, - 10, 0)
 
 				if qid == 1 then
-					quest:SetPoint("TOPLEFT", zone, "BOTTOMLEFT", 10, 0)
+					quest:SetPoint("TOP", zone, "BOTTOM", 0, - 1)
 				else
 					local prev = zone.quests[qid - 1]
 
@@ -330,8 +329,10 @@ function fux:Reposition()
 						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 1)
 					end
 
-					quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
 				end
+
+				quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
+				quest:SetPoint("RIGHT", self.frame, - 10, 0)
 
 				if(quest.visible) then
 					for oid, obj in ipairs(quest.objectives) do

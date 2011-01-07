@@ -140,16 +140,16 @@ end
 function proto:AddObjective(qid, name, got, need)
 	if(not name or strtrim(name) == "") then return error("No objective name for quest ", qid) end
 
-	if(self.objectivesByName[name]) then
+	local obj = self.objectivesByName[name]
+	if(obj) then
 		if(got and need) then
-			local obj = self.objectivesByName[name]
 			obj.right:SetText(got .. "/" .. need)
 			obj.got = got
 			obj.need = need
 		end
 
 		-- Is this right?
-		if(not self.visible and self.need > 0) then
+		if(not self.visible and obj.need > 0) then
 			self.right:SetText(self.got .. "/" .. self.need)
 		end
 
