@@ -1,9 +1,13 @@
+local parent, ns = ...
+
 local pairs = pairs
 local ipairs = ipairs
 
 local Q = ns.Q
 local fux = ns.fux
 fux.fade = 0.7
+
+local prototypes = ns.prototype
 
 fux.events:SetScript("OnEvent", function(self, event, ...)
 	fux[event](fux, ...)
@@ -122,6 +126,10 @@ function fux:OnEnable()
 	self.questIndet = 10
 	self.objIndent = 10
 
+	for id, zone in Q:IterateZones() do
+		self:NewZone(zone)
+	end
+
 	Q.RegisterCallback(self, "Update", "QuestUpdate")
 	Q.RegisterCallback(self, "Quest_Abandoned", "QuestAbandoned")
 	Q.RegisterCallback(self, "Quest_Gained", "QuestGained")
@@ -157,20 +165,22 @@ function fux:SetTitle()
 end
 
 function fux:QuestAbandoned(event, name, uid, zone)
-	zone = zone or self:GetZone(uid)
+	zone = self.zonesByName[zone][zone or self:GetZone(uid)]
 
-	if not zone or not self.zonesByName[zone] then return end
-
-	zone = self.zonesByName[zone]
+	if(not zone) then return end
 
 	local dirty = false
 	-- Do we still have it?
-	if zone.questsByName[name] then
-		zone:Remove(nil, name)
+
+	local q = zone.questsByName[name]
+	if(q) then
+		-- REMOVE QUEST
+		q:Remove()
 		dirty = true
 	end
 
-	if #zone.quests == 0 then
+	if(#zone.quests == 0) then
+		-- REMOVE ZONE
 		self:RemoveZone(nil, zone)
 		dirty = true
 	end
@@ -232,19 +242,13 @@ function fux:ObjectiveUpdate(event, title, qid, desc, old, got, need)
 	local uid, id, title, level, tag = Q:GetQuestByUid(qid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
-	if(not desc) then
-		print("No objective name!", title)
+	local obj = quest:AddObjective(uid, desc, got, need)
+	-- Dont like creating an obj to remove it
+	if(got > need) then
+		obj:Remove()
 	end
 
-	if got < need then
-		quest:AddObjective(uid, desc, got, need)
-	else
-		quest:Remove(nil, desc)
-	end
-
-	if event then
-		self:Reposition()
-	end
+	self:Reposition()
 end
 
 function fux:Init()
@@ -305,7 +309,6 @@ function fux:Reposition()
 		--zone:SetWidth(width - 5)
 
 		if id == 1 then
-			zone:ClearAllPoints()
 			zone:SetPoint("TOPLEFT", self.frame.title, "BOTTOMLEFT", 5, -1)
 		end
 
@@ -338,7 +341,7 @@ function fux:Reposition()
 					quest:SetPoint("LEFT", self.frame, "LEFT", 15, 0)
 				end
 
-				if quest.visible then
+				if(quest.visible) then
 					for oid, obj in ipairs(quest.objectives) do
 						last = obj
 
@@ -363,7 +366,7 @@ function fux:Reposition()
 		end
 
 		local next = self.zones[id + 1]
-		if next and last then
+		if(next and last) then
 			next:ClearAllPoints()
 			next:SetPoint("TOP", last, "BOTTOM", 0, - 2)
 			next:SetPoint("LEFT", self.frame, "LEFT", 5, 0)
@@ -377,8 +380,8 @@ end
 function fux:UNIT_LEVEL(unit)
 	if unit ~= "player" then return end
 
-	for id, zone in ipairs(self.zones) do
-		for qid, quest in ipairs(zone.quests) do
+	for id, zone in pairs(self.zones) do
+		for qid, quest in pairs(zone.quests) do
 			local col = GetQuestDifficultyColor(quest.level)
 			quest.text:SetTextColor(col.r * self.fade, col.g * self.fade, col.b * self.fade)
 			quest.right:SetTextColor(col. r * self.fade, col.g * self.fade, col.b * self.fade)
@@ -395,7 +398,7 @@ function fux:NewZone(name)
 	local row = prototypes.zone:New(14)
 
 	row.text:SetText("-" .. name)
-	row.text:SetTextColor(fade, fade, fade)
+	row.text:SetTextColor(self.fade, self.fade, self.fade)
 
 	row.name = name
 	row.id = fux.zonesCount
@@ -446,6 +449,7 @@ function fux:RemoveZone(id, zone)
 	self.zonesByName[zone.name] = nil
 	self.zoneCount = self.zoneCount - 1
 end
+
 function SlashCmdList.FUX()
 	if fux.frame:IsShown() then
 		ns.db.visible = false
@@ -456,4 +460,5 @@ function SlashCmdList.FUX()
 	end
 end
 
+_G.fux = fux
 SLASH_FUX1 = "/fux"

@@ -1,5 +1,4 @@
 local parent, ns = ...
-ns.prototype = CreateFrame("Frame")
 
 local fux = ns.fux
 local proto = ns.prototype
@@ -15,11 +14,11 @@ function proto:DelRow()
 	self:SetWidth(0)
 
 	self.text:SetText("")
-	self.level:SetText("")
+	self.right:SetText("")
 
-	setmetatable(self, {})
+	--setmetatable(self, {})
 
-	row_cache[row] = true
+	row_cache[self] = true
 
 	return true
 end
@@ -30,7 +29,6 @@ function proto:NewRow(height)
 
 	if(row) then
 		row_cache[row] = nil
-		row:Show()
 	else
 		row = CreateFrame("Frame", nil, fux.frame)
 		row:EnableMouse(true)
@@ -40,21 +38,25 @@ function proto:NewRow(height)
 		text:SetPoint("TOPLEFT", row, "TOPLEFT")
 		row.text = text
 
-		local level = row:CreateFontString(nil, "OVERLAY")
-		level:SetPoint("RIGHT", row)
-		level:SetPoint("TOP", row)
-		level:SetPoint("BOTTOM", row)
-		level:SetJustifyH("RIGHT")
-		level:SetFont(STANDARD_TEXT_FONT, height)
-		row.right = level
+		local right = row:CreateFontString(nil, "OVERLAY")
+		right:SetPoint("RIGHT", row)
+		right:SetPoint("TOP", row)
+		right:SetPoint("BOTTOM", row)
+		right:SetJustifyH("RIGHT")
+		right:SetFont(STANDARD_TEXT_FONT, height)
+		row.right = right
 	end
 
+	row:Show()
 	row:SetHeight(height)
 	row:SetWidth(fux.frame:GetWidth())
+
+	row.right:SetTextColor(1, 1, 1)
+	row.text:SetTextColor(1, 1, 1)
 
 	row:SetScript("OnMouseUp", self.OnClick)
 	row:SetScript("OnEnter", self.OnEnter)
 	row:SetScript("OnLeave", self.OnLeave)
 
-	return setmetatable(row, { __index = self })
+	return setmetatable(row, { __index = self, __tostring = function(self) return tostring(self.name) end })
 end

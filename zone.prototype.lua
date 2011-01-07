@@ -1,5 +1,6 @@
 local parent, ns = ...
 local Q = ns.Q
+local fux = ns.fux
 
 local proto = CreateFrame("Frame")
 local prototypes = ns.prototype
@@ -21,33 +22,8 @@ function proto:OnEnter()
 end
 
 function proto:OnLeave()
-	self.text:SetTextColor(ns.fux.ns.fux.fade, ns.fux.ns.fux.fade, ns.fux.ns.fux.fade)
-	self.right:SetTextColor(ns.fux.ns.fux.fade, ns.fux.ns.fux.fade, ns.fux.ns.fux.fade)
-end
-
-function proto:Remove(qid, quest)
-	if type(quest) == "string" then
-		quest = self.questsByName[quest]
-	end
-
-	if not qid and quest then
-		for k, v in pairs(self.quests) do
-			if v == quest then
-				qid = k
-				break
-			end
-		end
-	end
-
-	if not(qid and quest) then return error("(quest remove) Unable to find qid or quest", qid, quest) end
-
-	quest:Hide()
-
-	quest:RemoveAll()
-
-	table.remove(self.quests, qid)
-	self.questsByName[quest.name] = nil
-	self.questCount = self.questCount - 1
+	self.text:SetTextColor(ns.fux.fade, ns.fux.fade, ns.fux.fade)
+	self.right:SetTextColor(ns.fux.fade, ns.fux.fade, ns.fux.fade)
 end
 
 function proto:RemoveAll()
@@ -60,7 +36,8 @@ function proto:HideAll()
 	self.text:SetText("+" .. self.name)
 
 	for qid, q in pairs(self.quests) do
-		q:Hide()
+		-- Hide objs also
+		q:HideAll()
 	end
 
 	self.visible = false
@@ -86,7 +63,7 @@ function proto:AddQuest(uid, name, level, tag, status)
 		return self.questsByName[name]
 	end
 
-	local row = prototypes.quest:New(quest_proto)
+	local row = prototypes.quest:New()
 
 	row.text:SetText(string.format("[%s] %s", tag and level .. tag or level, name))
 
@@ -141,12 +118,13 @@ function proto:AddQuest(uid, name, level, tag, status)
 	return row
 end
 
+-- Can probably parent these off
 function proto:New(height)
-	return parent.NewRow(self, height)
+	return prototypes.NewRow(self, height)
 end
 
 function proto:Del()
-	return parent.DelRow(self)
+	return prototypes.DelRow(self)
 end
 
 prototypes.zone = proto

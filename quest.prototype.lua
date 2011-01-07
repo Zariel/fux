@@ -10,7 +10,7 @@ local prototypes = ns.prototype
 local tip = GameTooltip
 
 -- Quest Script Handlers
-function proto:OnClick(self, button)
+function proto:OnClick(button)
 	if(button == "LeftButton") then
 		if IsAltKeyDown() then
 			if self.visible then
@@ -73,8 +73,8 @@ function proto:OnLeave()
 		r, g, b = col.r, col.g, col.b
 	end
 
-	self.text:SetTextColor(r * fade, g * fade, b * fade)
-	self.right:SetTextColor(r * fade, g * fade, b * fade)
+	self.text:SetTextColor(r * ns.fux.fade, g * ns.fux.fade, b * ns.fux.fade)
+	self.right:SetTextColor(r * ns.fux.fade, g * ns.fux.fade, b * ns.fux.fade)
 
 	if tip:IsOwned(fux.frame) then
 		tip:Hide()
@@ -91,6 +91,9 @@ function proto:HideAll()
 		o:Hide()
 	end
 
+	self:Hide()
+
+	--[[
 	local need, got = 0, 0
 	for oid, obj in pairs(self.objectives) do
 		need = need + obj.need
@@ -104,6 +107,7 @@ function proto:HideAll()
 			self.right:SetText(got .. "/" .. need)
 		end
 	end
+	]]
 
 	self.visible = false
 end
@@ -122,9 +126,15 @@ end
 
 -- Remove quest
 function proto:Remove()
-	for oid, obj in pairs(self.objectives) do
-		obj:Remove()
+	for i = 1, #self.parent.quests do
+		if(self.parent.quests[i] == self) then
+			table.remove(self.parent.quests, i)
+			break
+		end
 	end
+
+	self.parent.questsByName[self.name] = nil
+	self.parent.questCount = self.parent.questCount - 1
 
 	self:Del()
 end
@@ -154,8 +164,8 @@ function proto:AddObjective(qid, name, got, need)
 	row.text:SetText(name)
 	row.right:SetText(got .. "/" .. need)
 
-	row.text:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
-	row.right:SetTextColor(0.7 * fade, 0.7 * fade, 0.7 * fade)
+	row.text:SetTextColor(0.7 * ns.fux.fade, 0.7 * ns.fux.fade, 0.7 * ns.fux.fade)
+	row.right:SetTextColor(0.7 * ns.fux.fade, 0.7 * ns.fux.fade, 0.7 * ns.fux.fade)
 
 	row.name = name
 	row.got = got
@@ -167,13 +177,15 @@ function proto:AddObjective(qid, name, got, need)
 
 	row.parent = self
 
+	local pos = 1
 	for i = 1, #self.objectives do
-		if self.objectives[i].name < o.name then
-			table.insert(self.objectives, i, row)
+		pos = i
+		if self.objectives[i].name < name then
 			break
 		end
 	end
 
+	table.insert(self.objectives, pos, row)
 	self.objectivesCount = self.objectivesCount + 1
 	self.objectivesByName[name] = row
 
@@ -181,9 +193,11 @@ function proto:AddObjective(qid, name, got, need)
 end
 
 function proto:New(height)
-	return parent.NewRow(self, height)
+	return prototypes.NewRow(self, height)
 end
 
 function proto:Del()
-	return parent.DelRow(self)
+	return prototypes.DelRow(self)
 end
+
+prototypes.quest = proto
