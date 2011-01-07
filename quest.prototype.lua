@@ -1,5 +1,6 @@
-local fux = getfenv(0).fux
-local Q = LibStub("LibQuixote-2.0")
+local parent, ns = ...
+local fux = ns.fux
+local Q = ns.Q
 
 local fade = 0.7
 fux.fade = fade

@@ -1,9 +1,15 @@
+local parent, ns = ...
+
+ns.fux = {}
+ns.fux.events = CreateFrame("Frame")
+
+local fux = ns.fux
+
 local Q = LibStub("LibQuixote-2.0")
 local pairs = pairs
 local ipairs = ipairs
 
-fux = {}
-fux.events = CreateFrame("Frame")
+ns.Q = Q
 
 fux.events:SetScript("OnEvent", function(self, event, ...)
 	fux[event](fux, ...)
@@ -34,7 +40,7 @@ function fux:InitDB()
 	_G.Fuxdb[realm] = _G.Fuxdb[realm] or {}
 	_G.Fuxdb[realm][name] = setmetatable(_G.Fuxdb[realm][name] or {}, { __index = data} )
 
-	self.db = _G.Fuxdb[realm][name]
+	ns.db = _G.Fuxdb[realm][name]
 
 	return true
 end
@@ -60,7 +66,7 @@ function fux:ADDON_LOADED(addon)
 	f:SetBackdropColor(0, 0, 0, 0.8)
 
 	f:SetClampedToScreen(true)
-	f:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", fux.db.x, fux.db.y)
+	f:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", ns.db.x, ns.db.y)
 	f:EnableMouse(true)
 	f:SetMovable(true)
 
@@ -77,8 +83,8 @@ function fux:ADDON_LOADED(addon)
 
 	f:SetScript("OnMouseUp", function(self, button)
 		local x, y = self:GetLeft(), self:GetTop()
-		fux.db.x = x
-		fux.db.y = y
+		ns.db.x = x
+		ns.db.y = y
 
 		self:StopMovingOrSizing()
 		self:ClearAllPoints()
@@ -389,10 +395,10 @@ end
 
 function SlashCmdList.FUX()
 	if fux.frame:IsShown() then
-		fux.db.visible = false
+		ns.db.visible = false
 		fux.frame:Hide()
 	else
-		fux.db.visible = true
+		ns.db.visible = true
 		fux.frame:Show()
 	end
 end
