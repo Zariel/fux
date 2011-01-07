@@ -165,7 +165,7 @@ function fux:SetTitle()
 end
 
 function fux:QuestAbandoned(event, name, uid, zone)
-	zone = self.zonesByName[zone][zone or self:GetZone(uid)]
+	zone = self.zonesByName[zone or self:GetZone(uid)]
 
 	if(not zone) then return end
 
@@ -193,9 +193,9 @@ function fux:QuestAbandoned(event, name, uid, zone)
 end
 
 function fux:QuestGained(event, title, uid, obj, zone)
-	zone = self:NewZone(zone)
+	local zone = self:NewZone(zone or self:GetZone(uid))
 
-	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
+	local uid, id, title, level, tag, objs, complete = Q:GetQuestByUid(uid)
 
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
@@ -203,19 +203,14 @@ function fux:QuestGained(event, title, uid, obj, zone)
 		self:ObjectiveUpdate(event, title, uid, o, nil, got or 0, need or 0)
 	end
 
-	if event then
-		self:Reposition()
-	end
+	self:Reposition()
 
 	self:SetTitle()
 end
 
 function fux:QuestFailed(event, name, uid)
-	local zone = self:GetZone(uid)
+	local zone = self:NewZone(zone or self:GetZone(uid))
 
-	if not zone or not self.zonesByName[zone] then return end
-
-	zone = self.zonesByName[zone]
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
 
 	self:Reposition()
@@ -224,10 +219,8 @@ function fux:QuestFailed(event, name, uid)
 end
 
 function fux:QuestComplete(event, name, uid)
-	local zone = self:GetZone(uid)
-	if not zone or not self.zonesByName[zone] then return end
+	local zone = self:NewZone(self:GetZone(uid))
 
-	zone = self.zonesByName[zone]
 	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
 
 	self:Reposition()
@@ -244,7 +237,7 @@ function fux:ObjectiveUpdate(event, title, qid, desc, old, got, need)
 
 	local obj = quest:AddObjective(uid, desc, got, need)
 	-- Dont like creating an obj to remove it
-	if(got > need) then
+	if(got >= need) then
 		obj:Remove()
 	end
 
@@ -273,13 +266,12 @@ function fux:QuestUpdate()
 	Q.UnregisterCallback(self, "Update")
 	local q = Q:GetNumQuests()
 
-	local completed = 0
 	local zone, quest, obj
 	for _, z, n in Q:IterateZones() do
 		for _, uid, qid, title, level, tag, objectives, complete in Q:IterateQuestsInZone(z) do
 			self:QuestGained(nil, title, uid, objectives, z)
 
-			if complete then
+			if(complete) then
 				if complete > 0 then
 					self:QuestComplete(nil, title, uid)
 				elseif complete < 0 then
