@@ -7,9 +7,9 @@ Quixote-2.0 which you wont be able to download,
 
 Change .gitmodules to be
 
-[submodule "Libs/LibQuixote-2.0"]
-	path = Libs/LibQuixote-2.0
-	url = git://github.com/Zariel/LibQuixote.git
+	[submodule "Libs/LibQuixote-2.0"]
+		path = Libs/LibQuixote-2.0
+		url = git://github.com/Zariel/LibQuixote.git
 
 and run
 
