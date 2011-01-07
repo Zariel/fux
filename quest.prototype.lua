@@ -86,21 +86,21 @@ function proto:HideObjectives()
 		o:Hide()
 	end
 
-	--[[
 	local need, got = 0, 0
 	for oid, obj in pairs(self.objectives) do
 		need = need + obj.need
 		got = got + obj.got
 	end
 
-	if need > 0 then
-		if got == need then
+	if(self.parent.status) then
+		self.right:SetText(self.parent.status)
+	elseif(need > 0) then
+		if(got == need) then
 			self.right:SetText("(done)")
 		else
 			self.right:SetText(got .. "/" .. need)
 		end
 	end
-	]]
 
 	self.visible = false
 end
@@ -126,6 +126,10 @@ function proto:Remove()
 		end
 	end
 
+	for oid, obj in pairs(self.objectives) do
+		obj:Remove()
+	end
+
 	self.parent.questsByName[self.name] = nil
 	self.parent.questCount = self.parent.questCount - 1
 
@@ -134,7 +138,7 @@ end
 
 -- Objective creation
 function proto:AddObjective(qid, name, got, need)
-	if(not name or name == "" or name:len() <= 1) then return error("No objective name for quest ", qid) end
+	if(not name or strtrim(name) == "") then return error("No objective name for quest ", qid) end
 
 	if(self.objectivesByName[name]) then
 		if(got and need) then
