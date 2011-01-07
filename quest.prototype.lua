@@ -22,7 +22,7 @@ do
 	newRow = function(parent, height)
 		height = height or 12
 		local row = next(row_cache)
-		if row then
+		if(row) then
 			row_cache[row] = nil
 			row:Show()
 		else
@@ -111,7 +111,7 @@ local questOnEnter = function(self)
 	end
 
 	tip:ClearLines()
-	tip:AddDoubleLine(self.name, self.status and self.status or need > 0 and got .. "/" .. need, r, g, b, r, g, b)
+	tip:AddDoubleLine(string.format("[%d] %s", self.level, self.name), self.status and self.status or need > 0 and got .. "/" .. need, r, g, b, r, g, b)
 
 	tip:AddLine(select(2, Q:GetQuestText(self.uid)), 0.8, 0.8, 0.8, true)
 	if #self.objectives > 0 then
@@ -183,6 +183,8 @@ function fux:NewZone(name)
 	row.id = fux.zonesCount
 	row.visible = true
 	row.type = "zone"
+
+	row.parent = self
 
 	row.quests = {}
 	row.questsByName = {}
@@ -286,7 +288,7 @@ end
 -- Quest Creation
 function zone_proto:AddQuest(uid, name, level, tag, status)
 	if self.questsByName[name]then
-		if status then
+		if(status) then
 			self.questsByName[name].right:SetText(status)
 		end
 		return self.questsByName[name]
@@ -328,6 +330,8 @@ function zone_proto:AddQuest(uid, name, level, tag, status)
 
 	row.id = self.questCount
 	row.uid = uid
+
+	row.parent = self
 
 	row.objectives = {}
 	row.objectivesByName = {}
@@ -391,16 +395,18 @@ function quest_proto:Remove(oid, obj)
 		obj = self.objectivesByName[obj]
 	end
 
-	if not oid and obj then
-		for k, v in pairs(self.objectives) do
-			if v == obj then
-				oid = k
+	error("Remove obj", oid, obj and obj.name or "No object")
+
+	if(not (oid or obj)) then
+		for i = 1, self.objectivesCount do
+			if self.objectives[i] == obj then
+				oid = i
 				break
 			end
 		end
 	end
 
-	if not(obj and oid) then return end
+	if(not(obj and oid)) then return error("Unable to remote objective", obj, oid, obj and obj.name) end
 
 	obj:Hide()
 
@@ -417,9 +423,10 @@ end
 
 -- Objective creation
 function quest_proto:AddObjective(qid, name, got, need)
-	if not name or name == "" then return end
+	if(not name or name == "" or name:len() <= 1) then return error("No objective name for quest ", qid) end
+
 	if self.objectivesByName[name] then
-		if got and need then
+		if(got and need) then
 			local obj = self.objectivesByName[name]
 			obj.right:SetText(got .. "/" .. need)
 			obj.got = got
@@ -455,6 +462,8 @@ function quest_proto:AddObjective(qid, name, got, need)
 	row.id = self.objectivesCount
 	row.type = "objective"
 	row.qid = qid
+
+	row.parent = self
 
 	local pos = 1
 	for i, o in ipairs(self.objectives) do

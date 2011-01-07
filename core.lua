@@ -226,13 +226,15 @@ function fux:QuestComplete(event, name, uid)
 end
 
 -- Still causes a full obj update
-function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
-	local zone = self:GetZone(uid)
+function fux:ObjectiveUpdate(event, title, qid, desc, old, got, need)
+	local zone = self:NewZone(self:GetZone(qid))
 
-	zone = self:NewZone(zone)
-
-	local uid, id, title, level, tag = Q:GetQuestByUid(uid)
+	local uid, id, title, level, tag = Q:GetQuestByUid(qid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
+
+	if(not desc) then
+		print("No objective name!", title)
+	end
 
 	if got < need then
 		quest:AddObjective(uid, desc, got, need)
@@ -276,7 +278,7 @@ function fux:QuestUpdate()
 			if complete then
 				if complete > 0 then
 					self:QuestComplete(nil, title, uid)
-				elseif compelte < 0 then
+				elseif complete < 0 then
 					self:QuestFailed(nil, title, uid)
 				end
 			end
