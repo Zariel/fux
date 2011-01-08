@@ -55,6 +55,20 @@ function proto:ShowQuests()
 	self.visible = true
 end
 
+function proto:Remove()
+	for i = 1, #self.parent.zones do
+		if(self.parent.zones[i] == self) then
+			table.remove(self.parent.zones, i)
+			break
+		end
+	end
+
+	self.parent.zones[self.name] = nil
+	self.parent.zonesCount = self.parentCount - 1
+
+	self:DelRow()
+end
+
 -- Quest Creation
 function proto:AddQuest(uid, name, level, tag, status)
 	local row = self.questsByName[name]

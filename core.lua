@@ -9,11 +9,11 @@ fux.fade = 0.7
 
 local prototypes = ns.prototype
 
-fux.events:SetScript("OnEvent", function(self, event, ...)
-	fux[event](fux, ...)
+fux:SetScript("OnEvent", function(self, event, ...)
+	return self[event](self, ...)
 end)
 
-fux.events:RegisterEvent("ADDON_LOADED")
+fux:RegisterEvent("ADDON_LOADED")
 
 local tags = {
 	Dungeon = "d",
@@ -36,7 +36,7 @@ function fux:InitDB()
 
 	_G.Fuxdb = _G.Fuxdb or {}
 	_G.Fuxdb[realm] = _G.Fuxdb[realm] or {}
-	_G.Fuxdb[realm][name] = setmetatable(_G.Fuxdb[realm][name] or {}, { __index = data} )
+	_G.Fuxdb[realm][name] = setmetatable(_G.Fuxdb[realm][name] or {}, { __index = data } )
 
 	ns.db = _G.Fuxdb[realm][name]
 
@@ -44,7 +44,7 @@ function fux:InitDB()
 end
 
 function fux:ADDON_LOADED(addon)
-	if addon ~= "Fux" then return end
+	if(addon ~= "Fux") then return end
 
 	self:InitDB()
 
@@ -107,7 +107,7 @@ function fux:ADDON_LOADED(addon)
 
 	self.frame = f
 
-	self.events:UnregisterEvent("ADDON_LOADED")
+	self:UnregisterEvent("ADDON_LOADED")
 	self.ADDON_LOADED = nil
 
 	self:OnEnable()
@@ -138,9 +138,9 @@ function fux:OnEnable()
 	Q.RegisterCallback(self, "Quest_Failed", "QuestFailed")
 	Q.RegisterCallback(self, "Quest_Lost", "QuestAbandoned")
 
-	self.events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	self.ZONE_CHANGED_NEW_AREA = self.Init
-	self.events:RegisterEvent("UNIT_LEVEL")
+	self:RegisterEvent("UNIT_LEVEL")
 end
 
 function fux:GetZone(uid)
@@ -165,10 +165,7 @@ function fux:SetTitle()
 end
 
 function fux:QuestAbandoned(event, name, uid, zone)
-	zone = self.zonesByName[zone or self:GetZone(uid)]
-
-	if(not zone) then return end
-
+	local zone = self:NewZone(zone or self:GetZone(uid))
 	local dirty = false
 	-- Do we still have it?
 
@@ -181,11 +178,11 @@ function fux:QuestAbandoned(event, name, uid, zone)
 
 	if(#zone.quests == 0) then
 		-- REMOVE ZONE
-		self:RemoveZone(nil, zone)
+		zone:Remove()
 		dirty = true
 	end
 
-	if dirty then
+	if(dirty) then
 		self:Reposition()
 	end
 
@@ -210,21 +207,15 @@ end
 
 function fux:QuestFailed(event, name, uid)
 	local zone = self:NewZone(zone or self:GetZone(uid))
-
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
-
 	self:Reposition()
-
 	self:SetTitle()
 end
 
 function fux:QuestComplete(event, name, uid)
 	local zone = self:NewZone(self:GetZone(uid))
-
 	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
-
 	self:Reposition()
-
 	self:SetTitle()
 end
 
@@ -247,7 +238,7 @@ end
 function fux:Init()
 	local sub, cur = GetMinimapZoneText(), GetRealZoneText()
 	for id, zone in pairs(self.zones) do
-		if zone.name == sub or zone.name == cur then
+		if(zone.name == sub or zone.name == cur) then
 			zone:ShowQuests()
 		else
 			zone:HideQuests()
@@ -263,6 +254,8 @@ function fux:Init()
 end
 
 function fux:QuestUpdate()
+	if(not self.init) then self:Init() end
+
 	Q.UnregisterCallback(self, "Update")
 	local q = Q:GetNumQuests()
 
@@ -286,8 +279,6 @@ function fux:QuestUpdate()
 			end
 		end
 	end
-
-	if not self.init then self:Init() end
 end
 
 -- MADNESS ENSUES
@@ -307,7 +298,7 @@ function fux:Reposition()
 		zone:SetPoint("RIGHT", self.frame, "RIGHT")
 
 		local last = zone
-		if zone.visible then
+		if(zone.visible) then
 			for qid, quest in ipairs(zone.quests) do
 				last = quest
 
@@ -417,29 +408,6 @@ function fux:NewZone(name)
 	self.zonesByName[name] = row
 
 	return row
-end
-
-function fux:RemoveZone(id, zone)
-	if type(zone) == "string" then
-		zone = self.zonesByName[zone]
-	end
-
-	if not id and zone then
-		for k, v in pairs(self.zones) do
-			if v == zone then
-				id = k
-				break
-			end
-		end
-	end
-
-	if not(id and zone) then return end
-
-	zone:Hide()
-
-	table.remove(self.zones, id)
-	self.zonesByName[zone.name] = nil
-	self.zoneCount = self.zoneCount - 1
 end
 
 function SlashCmdList.FUX()
