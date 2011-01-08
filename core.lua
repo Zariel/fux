@@ -387,7 +387,7 @@ function fux:NewZone(name)
 		return self.zonesByName[name]
 	end
 
-	local row = prototypes.zone:New(14)
+	local row = prototypes.zone:NewRow(14)
 
 	row.text:SetText("-" .. name)
 	row.text:SetTextColor(self.fade, self.fade, self.fade)

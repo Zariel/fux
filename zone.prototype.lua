@@ -2,8 +2,8 @@ local parent, ns = ...
 local Q = ns.Q
 local fux = ns.fux
 
-local proto = CreateFrame("Frame")
 local prototypes = ns.prototype
+local proto = setmetatable(CreateFrame("Frame"), { __index = prototypes })
 
 function proto:OnClick(button)
 	if button == "LeftButton" then
@@ -67,7 +67,7 @@ function proto:AddQuest(uid, name, level, tag, status)
 		return row
 	end
 
-	row = prototypes.quest:New()
+	row = prototypes.quest:NewRow()
 
 	row.text:SetText(string.format("[%s] %s", tag and level .. tag or level, name))
 
@@ -122,12 +122,5 @@ function proto:AddQuest(uid, name, level, tag, status)
 end
 
 -- Can probably parent these off
-function proto:New(height)
-	return prototypes.NewRow(self, height)
-end
-
-function proto:Del()
-	return prototypes.DelRow(self)
-end
 
 prototypes.zone = proto

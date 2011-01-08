@@ -1,8 +1,8 @@
 local parent, ns = ...
 local Q = ns.Q
 
-local proto = CreateFrame("Frame")
 local prototypes = ns.prototype
+local proto = setmetatable(CreateFrame("Frame"), { __index = prototypes })
 
 function proto:OnClick(button)
 	if(button == "LeftButton") then
@@ -31,15 +31,7 @@ function proto:Remove()
 	self.parent.objectivesByName[self.name] = nil
 	self.parent.objectivesCount = self.parent.objectivesCount - 1
 
-	self:Del()
-end
-
-function proto:New(height)
-	return prototypes.NewRow(self, height)
-end
-
-function proto:Del()
-	return prototypes.DelRow(self)
+	self:DelRow()
 end
 
 prototypes.objective = proto

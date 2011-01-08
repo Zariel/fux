@@ -4,8 +4,8 @@ local parent, ns = ...
 local Q = ns.Q
 local fux = ns.fux
 
-local proto = CreateFrame("Frame")
 local prototypes = ns.prototype
+local proto = setmetatable(CreateFrame("Frame"), { __index = prototypes })
 
 local tip = GameTooltip
 
@@ -133,7 +133,7 @@ function proto:Remove()
 	self.parent.questsByName[self.name] = nil
 	self.parent.questCount = self.parent.questCount - 1
 
-	self:Del()
+	self:DelRow()
 end
 
 -- Objective creation
@@ -156,7 +156,7 @@ function proto:AddObjective(qid, name, got, need)
 		return self.objectivesByName[name]
 	end
 
-	local row = prototypes.objective:New()
+	local row = prototypes.objective:NewRow()
 
 	row.text:SetText(name)
 	row.right:SetText(got .. "/" .. need)
@@ -187,14 +187,6 @@ function proto:AddObjective(qid, name, got, need)
 	self.objectivesByName[name] = row
 
 	return row
-end
-
-function proto:New(height)
-	return prototypes.NewRow(self, height)
-end
-
-function proto:Del()
-	return prototypes.DelRow(self)
 end
 
 prototypes.quest = proto
