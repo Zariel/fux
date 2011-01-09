@@ -64,7 +64,7 @@ function proto:Remove()
 	end
 
 	self.parent.zones[self.name] = nil
-	self.parent.zonesCount = self.parentCount - 1
+	self.parent.zoneCount = self.parent.zoneCount - 1
 
 	self:DelRow()
 end

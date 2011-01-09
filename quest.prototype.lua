@@ -138,7 +138,7 @@ end
 
 -- Objective creation
 function proto:AddObjective(qid, name, got, need)
-	if(not name or strtrim(name) == "") then return error("No objective name for quest ", qid) end
+	if(not name or strtrim(name) == "") then return end
 
 	local obj = self.objectivesByName[name]
 	if(obj) then
@@ -148,10 +148,13 @@ function proto:AddObjective(qid, name, got, need)
 			obj.need = need
 		end
 
+		-- objective is hidden, update the quest display
 		-- Is this right?
-		if(not self.visible and obj.need > 0) then
+		--[[
+		if(not self.visible and self.need > 0) then
 			self.right:SetText(self.got .. "/" .. self.need)
 		end
+		]]
 
 		return self.objectivesByName[name]
 	end
