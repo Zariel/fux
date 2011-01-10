@@ -67,6 +67,7 @@ function fux:OnUpdate(elapsed)
 		if(#failed_obj == 0) then
 			self:Hide()
 		end
+		timer = 0
 	end
 end
 
@@ -241,7 +242,6 @@ function fux:QuestFailed(event, name, uid)
 	local zone = self:NewZone(zone or self:GetZone(uid))
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
 
-	print(zone, quest, "failed")
 	for id, obj in pairs(quest.children) do
 		obj:Remove()
 	end
@@ -271,7 +271,7 @@ function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
 
 	local failed = quest.status == "(failed)"
 	local obj = quest:AddObjective(qid, desc, got, need)
-	if(obj and got >= need or failed) then
+	if(obj and (got >= need or failed)) then
 		obj:Remove()
 	elseif(not obj) then
 		failed_obj[qid] = true

@@ -125,15 +125,11 @@ function proto:AddObjective(qid, name, got, need)
 	local row = self.childrenByName[name]
 	if(row) then
 		if(got and need) then
-			if(got == need) then
-				row:Remove()
-
-				return nil
-			end
 			row.right:SetText(got .. "/" .. need)
 			row.got = got
 			row.need = need
 		end
+
 		return row
 	end
 
