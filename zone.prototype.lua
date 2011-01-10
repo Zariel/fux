@@ -100,7 +100,7 @@ function proto:AddQuest(uid, name, level, tag, status)
 	self.childrenByName[name] = row
 	table.insert(self.children, row)
 	table.sort(self.children, function(a, b)
-		return a and b and a.level < b.level or a.name < b.name
+		return (a and b) and (a.level < b.level or a.name < b.name)
 	end)
 
 	return row

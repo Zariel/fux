@@ -126,7 +126,7 @@ function proto:AddObjective(qid, name, got, need)
 	if(row) then
 		if(got and need) then
 			if(got == need) then
-				row:DelRow()
+				row:Remove()
 
 				return nil
 			end

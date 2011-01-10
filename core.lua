@@ -52,11 +52,15 @@ function fux:OnUpdate(elapsed)
 	if(timer > 1) then
 		for qid in pairs(failed_obj) do
 			local uid, id, title, level, tag = Q:GetQuestByUid(qid)
+			local failed = false
 			for desc, got, need in Q:IterateObjectivesForQuest(qid) do
 				-- ObjectiveUpdate(event, title, uid, desc, old, got, need)
-				if(self:ObjectiveUpdate(nil, title, uid, desc, nil, got, need)) then
-					failed_obj[qid] = nil
+				if(not self:ObjectiveUpdate(nil, title, uid, desc, nil, got, need)) then
+					failed = true
 				end
+			end
+			if(not failed) then
+				failed_obj[qid] = nil
 			end
 		end
 
@@ -165,6 +169,10 @@ function fux:OnEnable()
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	self.ZONE_CHANGED_NEW_AREA = self.Init
 	self:RegisterEvent("UNIT_LEVEL")
+
+	if(not self.init) then
+		self:Init()
+	end
 end
 
 function fux:GetZone(uid)
@@ -233,10 +241,8 @@ function fux:QuestFailed(event, name, uid)
 	local zone = self:NewZone(zone or self:GetZone(uid))
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
 
-	if(quest.children) then
-		for id, obj in pairs(quest.children) do
-			obj:Remove()
-		end
+	for id, obj in pairs(quest.children) do
+		obj:Remove()
 	end
 
 	self:Reposition()
@@ -247,10 +253,8 @@ function fux:QuestComplete(event, name, uid)
 	local zone = self:NewZone(self:GetZone(uid))
 	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
 
-	if(quest.children) then
-		for id, obj in pairs(quest.children) do
-			obj:Remove()
-		end
+	for id, obj in pairs(quest.children) do
+		obj:Remove()
 	end
 
 	self:Reposition()
@@ -264,15 +268,13 @@ function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
 	local qid, id, title, level, tag = Q:GetQuestByUid(uid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
-	if(got >= need and quest.childrenByName[desc]) then
-		quest.childrenByName[desc]:Remove()
-	else
-		local obj = quest:AddObjective(qid, desc, got, need)
-		if(not obj) then
-			failed_obj[qid] = true
-			self:Show()
-			return
-		end
+	local obj = quest:AddObjective(qid, desc, got, need)
+	if(obj and got >= need) then
+		obj:Remove()
+	elseif(not obj) then
+		failed_obj[qid] = true
+		self:Show()
+		return
 	end
 
 	self:Reposition()
@@ -317,7 +319,7 @@ function fux:QuestUpdate()
 				end
 			end
 
-			if objectives and objectives > 0 and not complete then
+			if objectives and objectives > 0 then
 				for name, got, need in Q:IterateObjectivesForQuest(uid) do
 					self:ObjectiveUpdate(nil, title, uid, name, nil, got, need)
 				end
