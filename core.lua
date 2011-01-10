@@ -15,6 +15,8 @@ end)
 
 fux:RegisterEvent("ADDON_LOADED")
 
+local failed_obj = {}
+
 local tags = {
 	Dungeon = "d",
 	Elite = "+",
@@ -43,10 +45,33 @@ function fux:InitDB()
 	return true
 end
 
+local timer = 0
+function fux:OnUpdate(elapsed)
+	timer = timer + elapsed
+
+	if(timer > 1) then
+		for qid in pairs(failed_obj) do
+			local uid, id, title, level, tag = Q:GetQuestByUid(qid)
+			for desc, got, need in Q:IterateObjectivesForQuest(qid) do
+				-- ObjectiveUpdate(event, title, uid, desc, old, got, need)
+				if(self:ObjectiveUpdate(nil, title, uid, desc, nil, got, need)) then
+					failed_obj[qid] = nil
+				end
+			end
+		end
+
+		if(#failed_obj == 0) then
+			self:Hide()
+		end
+	end
+end
+
 function fux:ADDON_LOADED(addon)
 	if(addon ~= "Fux") then return end
 
 	self:InitDB()
+
+	self:SetScript("OnUpdate", self.OnUpdate)
 
 	local f = CreateFrame("Frame", nil, UIParent)
 	f:SetHeight(425)
@@ -68,8 +93,8 @@ function fux:ADDON_LOADED(addon)
 	f:EnableMouse(true)
 	f:SetMovable(true)
 
-	f:SetScript("OnShow", function(self)
-		fux:QuestUpdate()
+	f:SetScript("OnShow", function()
+		return fux:QuestUpdate()
 	end)
 
 	f:SetScript("OnMouseDown", function(self, button)
@@ -118,9 +143,8 @@ function fux:OnEnable()
 	q.Show = function() end
 	q:Hide()
 
-	self.zones = {}
-	self.zonesByName = {}
-	self.zoneCount = 0
+	self.children = {}
+	self.childrenByName = {}
 
 	self.zoneIndent = 5
 	self.questIndet = 10
@@ -169,14 +193,14 @@ function fux:QuestAbandoned(event, name, uid, zone)
 	local dirty = false
 	-- Do we still have it?
 
-	local q = zone.questsByName[name]
+	local q = zone.childrenByName[name]
 	if(q) then
 		-- REMOVE QUEST
 		q:Remove()
 		dirty = true
 	end
 
-	if(#zone.quests == 0) then
+	if(#zone.children == 0) then
 		-- REMOVE ZONE
 		zone:Remove()
 		dirty = true
@@ -208,6 +232,13 @@ end
 function fux:QuestFailed(event, name, uid)
 	local zone = self:NewZone(zone or self:GetZone(uid))
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
+
+	if(quest.children) then
+		for id, obj in pairs(quest.children) do
+			obj:Remove()
+		end
+	end
+
 	self:Reposition()
 	self:SetTitle()
 end
@@ -215,29 +246,43 @@ end
 function fux:QuestComplete(event, name, uid)
 	local zone = self:NewZone(self:GetZone(uid))
 	local quest = zone:AddQuest(uid, name, nil, nil, "(done)")
+
+	if(quest.children) then
+		for id, obj in pairs(quest.children) do
+			obj:Remove()
+		end
+	end
+
 	self:Reposition()
 	self:SetTitle()
 end
 
 -- Still causes a full obj update
-function fux:ObjectiveUpdate(event, title, qid, desc, old, got, need)
-	local zone = self:NewZone(self:GetZone(qid))
+function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
+	local zone = self:NewZone(self:GetZone(uid))
 
-	local uid, id, title, level, tag = Q:GetQuestByUid(qid)
+	local qid, id, title, level, tag = Q:GetQuestByUid(uid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
-	local obj = quest:AddObjective(uid, desc, got, need)
-	-- Dont like creating an obj to remove it
-	if(got >= need) then
-		obj:Remove()
+	if(got >= need and quest.childrenByName[desc]) then
+		quest.childrenByName[desc]:Remove()
+	else
+		local obj = quest:AddObjective(qid, desc, got, need)
+		if(not obj) then
+			failed_obj[qid] = true
+			self:Show()
+			return
+		end
 	end
 
 	self:Reposition()
+
+	return true
 end
 
 function fux:Init()
 	local sub, cur = GetMinimapZoneText(), GetRealZoneText()
-	for id, zone in pairs(self.zones) do
+	for id, zone in pairs(self.children) do
 		if(zone.name == sub or zone.name == cur) then
 			zone:ShowQuests()
 		else
@@ -286,12 +331,12 @@ function fux:Reposition()
 	local height = 25
 	local width = 150
 
-	for id, zone in ipairs(self.zones) do
+	for id, zone in ipairs(self.children) do
 		height = height + 16
 		width = math.max(math.max(math.floor(zone.text:GetStringWidth()) + 20, 150), width)
 		--zone:SetWidth(width - 5)
 
-		if id == 1 then
+		if(id == 1) then
 			zone:SetPoint("TOPLEFT", self.frame.title, "BOTTOMLEFT", 5, -1)
 		end
 
@@ -299,7 +344,7 @@ function fux:Reposition()
 
 		local last = zone
 		if(zone.visible) then
-			for qid, quest in ipairs(zone.quests) do
+			for qid, quest in ipairs(zone.children) do
 				last = quest
 
 				height = height + 14
@@ -308,13 +353,14 @@ function fux:Reposition()
 
 				quest:ClearAllPoints()
 
-				if qid == 1 then
+				if(qid == 1) then
 					quest:SetPoint("TOP", zone, "BOTTOM", 0, - 1)
 				else
-					local prev = zone.quests[qid - 1]
+					local prev = zone.children[qid - 1]
 
-					if(prev.visible and prev.objectivesCount > 0) then
-						local obj = prev.objectives[prev.objectivesCount]
+					local objCount = #prev.children
+					if(prev.visible and objCount > 0) then
+						local obj = prev.children[objCount]
 						quest:SetPoint("TOP", obj, "BOTTOM", 0, - 1)
 					else
 						quest:SetPoint("TOP", prev, "BOTTOM", 0, - 1)
@@ -325,7 +371,7 @@ function fux:Reposition()
 				quest:SetPoint("RIGHT", self.frame, - 10, 0)
 
 				if(quest.visible) then
-					for oid, obj in ipairs(quest.objectives) do
+					for oid, obj in ipairs(quest.children) do
 						last = obj
 
 						height = height + 12
@@ -337,7 +383,7 @@ function fux:Reposition()
 						if(oid == 1) then
 							obj:SetPoint("TOP", quest, "BOTTOM", 0, 0)
 						else
-							local prev = quest.objectives[oid - 1]
+							local prev = quest.children[oid - 1]
 							obj:SetPoint("TOP", prev, "BOTTOM", 0, 0)
 						end
 
@@ -348,7 +394,7 @@ function fux:Reposition()
 			end
 		end
 
-		local next = self.zones[id + 1]
+		local next = self.children[id + 1]
 		if(next and last) then
 			next:ClearAllPoints()
 			next:SetPoint("TOP", last, "BOTTOM", 0, - 2)
@@ -361,10 +407,10 @@ function fux:Reposition()
 end
 
 function fux:UNIT_LEVEL(unit)
-	if unit ~= "player" then return end
+	if(unit ~= "player") then return end
 
-	for id, zone in pairs(self.zones) do
-		for qid, quest in pairs(zone.quests) do
+	for id, zone in pairs(self.children) do
+		for qid, quest in pairs(zone.children) do
 			local col = GetQuestDifficultyColor(quest.level)
 			quest.text:SetTextColor(col.r * self.fade, col.g * self.fade, col.b * self.fade)
 			quest.right:SetTextColor(col. r * self.fade, col.g * self.fade, col.b * self.fade)
@@ -374,38 +420,29 @@ end
 
 -- Zone Creation
 function fux:NewZone(name)
-	if(self.zonesByName[name]) then
-		return self.zonesByName[name]
+	name = strtrim(name)
+	local row = self.childrenByName[name]
+
+	if(row) then
+		return row
 	end
 
-	local row = prototypes.zone:NewRow(14)
+	row = prototypes.zone:NewRow(14)
 
 	row.text:SetText("-" .. name)
 	row.text:SetTextColor(self.fade, self.fade, self.fade)
 
 	row.name = name
-	row.id = fux.zonesCount
 	row.visible = true
 	row.type = "zone"
 
 	row.parent = self
 
-	row.quests = {}
-	row.questsByName = {}
-	row.questCount = 0
-
-	local pos = 1
-	for i, z in ipairs(self.zones) do
-		pos = i + 1
-		if z.name > name then
-			pos = i
-			break
-		end
-	end
-
-	fux.zoneCount = fux.zoneCount + 1
-	table.insert(self.zones, pos, row)
-	self.zonesByName[name] = row
+	table.insert(self.children, row)
+	table.sort(self.children, function(a, b)
+		return a.name < b.name
+	end)
+	self.childrenByName[name] = row
 
 	return row
 end
@@ -420,5 +457,7 @@ function SlashCmdList.FUX()
 	end
 end
 
+fux.__name = "fux"
+
 _G.fux = fux
-SLASH_FUX1 = "/fux"
+_G.SLASH_FUX1 = "/fux"
