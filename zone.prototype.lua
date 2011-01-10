@@ -27,7 +27,7 @@ function proto:OnLeave()
 end
 
 function proto:RemoveAll()
-	for qid, quest in pairs(self.quests) do
+	for qid, quest in pairs(self.children) do
 		self:Remove(qid, quest)
 	end
 end
@@ -35,7 +35,7 @@ end
 function proto:HideQuests()
 	self.text:SetText("+" .. self.name)
 
-	for qid, q in pairs(self.quests) do
+	for qid, q in pairs(self.children) do
 		-- Hide objs also
 		q:HideObjectives()
 		q:Hide()
@@ -47,7 +47,7 @@ end
 function proto:ShowQuests()
 	self.text:SetText("-" .. self.name)
 
-	for qid, q in pairs(self.quests) do
+	for qid, q in pairs(self.children) do
 		q:Show()
 		q:ShowObjectives()
 	end
@@ -55,23 +55,10 @@ function proto:ShowQuests()
 	self.visible = true
 end
 
-function proto:Remove()
-	for i = 1, #self.parent.zones do
-		if(self.parent.zones[i] == self) then
-			table.remove(self.parent.zones, i)
-			break
-		end
-	end
-
-	self.parent.zones[self.name] = nil
-	self.parent.zoneCount = self.parent.zoneCount - 1
-
-	self:DelRow()
-end
-
 -- Quest Creation
 function proto:AddQuest(uid, name, level, tag, status)
-	local row = self.questsByName[name]
+	name = strtrim(name)
+	local row = self.childrenByName[name]
 	if(row) then
 		if(status) then
 			row.status = status
@@ -91,6 +78,7 @@ function proto:AddQuest(uid, name, level, tag, status)
 	row.status = status
 	row.visible = true
 	row.daily = tag == "*"
+	row.uid = uid
 
 	local r, g, b
 	if(row.daily) then
@@ -107,34 +95,18 @@ function proto:AddQuest(uid, name, level, tag, status)
 		row.right:SetText(status)
 	end
 
-	row.id = self.questCount
-	row.uid = uid
-
 	row.parent = self
 
-	row.objectives = {}
-	row.objectivesByName = {}
-	row.objectivesCount = 0
-
-	local pos = 1
-	for i, q in pairs(self.quests) do
-		pos = i + 1
-		if level < q.level then
-			pos = i
-			break
-		elseif level == q.level and name < q.name then
-			pos = i
-			break
-		end
-	end
-
-	self.questCount = self.questCount + 1
-	table.insert(self.quests, pos, row)
-	self.questsByName[name] = row
+	self.childrenByName[name] = row
+	table.insert(self.children, row)
+	table.sort(self.children, function(a, b)
+		return a and b and a.level < b.level or a.name < b.name
+	end)
 
 	return row
 end
 
 -- Can probably parent these off
 
+proto.__name = "zone"
 prototypes.zone = proto

@@ -16,7 +16,10 @@ function proto:DelRow()
 	self.text:SetText("")
 	self.right:SetText("")
 
-	--setmetatable(self, {})
+	--setmetatable(self, nil)
+
+	self.children = nil
+	self.childrenByName = nil
 
 	row_cache[self] = true
 
@@ -28,6 +31,7 @@ function proto:NewRow(height)
 	local row = next(row_cache)
 
 	if(row) then
+		print(row, type(row))
 		row_cache[row] = nil
 	else
 		row = CreateFrame("Frame", nil, fux.frame)
@@ -59,5 +63,28 @@ function proto:NewRow(height)
 	row:SetScript("OnEnter", self.OnEnter)
 	row:SetScript("OnLeave", self.OnLeave)
 
-	return setmetatable(row, { __index = self, __tostring = function(self) return tostring(self.name) end })
+	row.children = {}
+	row.childrenByName = {}
+
+	return setmetatable(row, {
+		__index = self,
+		__tostring = function(self) return tostring(self.name) end
+	})
+end
+
+function proto:Remove()
+	for i = 1, #self.parent.children do
+		if(self.parent.children[i] == self) then
+			table.remove(self.parent.children, i)
+			break
+		end
+	end
+
+	for k, v in pairs(self.children) do
+		v:Remove()
+	end
+
+	self.parent.childrenByName[self.name] = nil
+
+	self:DelRow()
 end

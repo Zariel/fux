@@ -42,7 +42,7 @@ function proto:OnEnter()
 	tip:SetPoint("TOPLEFT", fux.frame, "TOPRIGHT")
 
 	local need, got = 0, 0
-	for oid, obj in pairs(self.objectives) do
+	for oid, obj in pairs(self.children) do
 		need = need + obj.need
 		got = got + obj.got
 	end
@@ -51,10 +51,10 @@ function proto:OnEnter()
 	tip:AddDoubleLine(string.format("[%d] %s", self.level, self.name), self.status and self.status or need > 0 and got .. "/" .. need, r, g, b, r, g, b)
 
 	tip:AddLine(select(2, Q:GetQuestText(self.uid)), 0.8, 0.8, 0.8, true)
-	if #self.objectives > 0 then
+	if #self.children > 0 then
 		tip:AddLine("")
 
-		for oid, obj in ipairs(self.objectives) do
+		for oid, obj in ipairs(self.children) do
 			tip:AddDoubleLine(obj.name, obj.need > 0 and obj.got .. "/" .. obj.need, r, g, b, r, g, b)
 		end
 	end
@@ -82,12 +82,12 @@ function proto:OnLeave()
 end
 
 function proto:HideObjectives()
-	for oid, o in pairs(self.objectives) do
+	for oid, o in pairs(self.children) do
 		o:Hide()
 	end
 
 	local need, got = 0, 0
-	for oid, obj in pairs(self.objectives) do
+	for oid, obj in pairs(self.children) do
 		need = need + obj.need
 		got = got + obj.got
 	end
@@ -110,56 +110,34 @@ function proto:ShowObjectives()
 		self.right:SetText("")
 	end
 
-	for oid, o in pairs(self.objectives) do
+	for oid, o in pairs(self.children) do
 		o:Show()
 	end
 
 	self.visible = true
 end
 
--- Remove quest
-function proto:Remove()
-	for i = 1, #self.parent.quests do
-		if(self.parent.quests[i] == self) then
-			table.remove(self.parent.quests, i)
-			break
-		end
-	end
-
-	for oid, obj in pairs(self.objectives) do
-		obj:Remove()
-	end
-
-	self.parent.questsByName[self.name] = nil
-	self.parent.questCount = self.parent.questCount - 1
-
-	self:DelRow()
-end
-
 -- Objective creation
 function proto:AddObjective(qid, name, got, need)
-	if(not name or strtrim(name) == "") then return end
+	name = strtrim(name)
+	if(not name or name == "") then return end
 
-	local obj = self.objectivesByName[name]
-	if(obj) then
+	local row = self.childrenByName[name]
+	if(row) then
 		if(got and need) then
-			obj.right:SetText(got .. "/" .. need)
-			obj.got = got
-			obj.need = need
-		end
+			if(got == need) then
+				row:DelRow()
 
-		-- objective is hidden, update the quest display
-		-- Is this right?
-		--[[
-		if(not self.visible and self.need > 0) then
-			self.right:SetText(self.got .. "/" .. self.need)
+				return nil
+			end
+			row.right:SetText(got .. "/" .. need)
+			row.got = got
+			row.need = need
 		end
-		]]
-
-		return self.objectivesByName[name]
+		return row
 	end
 
-	local row = prototypes.objective:NewRow()
+	row = prototypes.objective:NewRow()
 
 	row.text:SetText(name)
 	row.right:SetText(got .. "/" .. need)
@@ -171,25 +149,20 @@ function proto:AddObjective(qid, name, got, need)
 	row.got = got
 	row.need = need
 
-	row.id = self.objectivesCount
 	row.type = "objective"
 	row.qid = qid
 
 	row.parent = self
 
-	local pos = 1
-	for i = 1, #self.objectives do
-		pos = i
-		if self.objectives[i].name < name then
-			break
-		end
-	end
+	table.insert(self.children, row)
+	table.sort(self.children, function(a, b)
+		return a.name < b.name
+	end)
 
-	table.insert(self.objectives, pos, row)
-	self.objectivesCount = self.objectivesCount + 1
-	self.objectivesByName[name] = row
+	self.childrenByName[name] = row
 
 	return row
 end
 
+proto.__name = "quest"
 prototypes.quest = proto

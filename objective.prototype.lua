@@ -20,18 +20,5 @@ function proto:OnLeave()
 	self.right:SetTextColor(0.7 * ns.fux.fade, 0.7 * ns.fux.fade, 0.7 * ns.fux.fade)
 end
 
-function proto:Remove()
-	for i = 1, #self.parent.objectives do
-		if(self.parent.objectives[i] == self) then
-			table.remove(self.parent.objectives, i)
-			break
-		end
-	end
-
-	self.parent.objectivesByName[self.name] = nil
-	self.parent.objectivesCount = self.parent.objectivesCount - 1
-
-	self:DelRow()
-end
-
+proto.__name = "objective"
 prototypes.objective = proto
