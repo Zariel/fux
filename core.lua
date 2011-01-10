@@ -241,6 +241,7 @@ function fux:QuestFailed(event, name, uid)
 	local zone = self:NewZone(zone or self:GetZone(uid))
 	local quest = zone:AddQuest(uid, name, nil, nil, "(failed)")
 
+	print(zone, quest, "failed")
 	for id, obj in pairs(quest.children) do
 		obj:Remove()
 	end
@@ -268,8 +269,9 @@ function fux:ObjectiveUpdate(event, title, uid, desc, old, got, need)
 	local qid, id, title, level, tag = Q:GetQuestByUid(uid)
 	local quest = zone:AddQuest(uid, title, tonumber(level), tags[tag])
 
+	local failed = quest.status == "(failed)"
 	local obj = quest:AddObjective(qid, desc, got, need)
-	if(obj and got >= need) then
+	if(obj and got >= need or failed) then
 		obj:Remove()
 	elseif(not obj) then
 		failed_obj[qid] = true
