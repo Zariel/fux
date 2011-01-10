@@ -31,7 +31,6 @@ function proto:NewRow(height)
 	local row = next(row_cache)
 
 	if(row) then
-		print(row, type(row))
 		row_cache[row] = nil
 	else
 		row = CreateFrame("Frame", nil, fux.frame)
